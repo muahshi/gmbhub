@@ -1,44 +1,79 @@
-'use client';
+"use client";
+import { useState, useEffect, useRef } from "react";
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { QrCode, TrendingUp, Shield, Star, ChevronRight, Check, Users, BarChart3, Zap, Bot, ArrowRight, Sparkles, Download, X } from 'lucide-react';
-import Link from 'next/link';
-import { cn, formatNumber } from '@/lib/utils';
-import { formatPrice } from '@/lib/currency';
-import type { CurrencyConfig } from '@/types';
-import { CURRENCY_MAP, PRICING_PLANS } from '@/types';
-import { GMBhubLogo, GMBhubBrand } from '@/components/ui/gmbhub-logo';
-import { GooglePartnerSeal, GoogleOAuthButton, GoogleColorStripe, GoogleGLogo, GoogleColorDots } from '@/components/ui/google-brand';
-
-// ── Ambient Background Layer ──────────────────────────────────────────
-function AmbientBackground() {
+// ── Sparkline mini chart ──────────────────────────────────────────────
+function Sparkline({ color = "#4285F4", data }) {
+  const pts = data || [20, 35, 28, 45, 38, 55, 48, 62, 58, 70, 65, 80];
+  const w = 80, h = 32;
+  const max = Math.max(...pts), min = Math.min(...pts);
+  const points = pts.map((v, i) => {
+    const x = (i / (pts.length - 1)) * w;
+    const y = h - ((v - min) / (max - min || 1)) * h;
+    return `${x},${y}`;
+  }).join(" ");
   return (
-    <div className="fixed inset-0 pointer-events-none z-0" aria-hidden>
-      {/* Primary blue orb – top left */}
-      <div className="absolute -top-40 -left-40 w-[900px] h-[900px] rounded-full animate-orb-drift"
-        style={{
-          background: 'radial-gradient(circle, rgba(66,133,244,0.15) 0%, rgba(66,133,244,0.04) 45%, transparent 75%)',
-          filter: 'blur(100px)',
-        }} />
-      {/* Emerald orb – bottom right */}
-      <div className="absolute -bottom-60 -right-60 w-[800px] h-[800px] rounded-full"
-        style={{
-          background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, rgba(52,168,83,0.05) 40%, transparent 75%)',
-          filter: 'blur(120px)',
-          animationDelay: '8s',
-        }} />
-      {/* Amber orb – mid center */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full"
-        style={{
-          background: 'radial-gradient(circle, rgba(251,188,5,0.06) 0%, transparent 70%)',
-          filter: 'blur(90px)',
-        }} />
-      {/* Grid overlay */}
-      <div className="absolute inset-0 bg-grid opacity-40" />
-      {/* Vignette edges */}
-      <div className="absolute inset-0"
-        style={{ background: 'radial-gradient(ellipse at 50% 0%, transparent 40%, rgba(0,0,0,0.6) 100%)' }} />
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} fill="none">
+      <defs>
+        <linearGradient id={`sg-${color.replace("#","")}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polyline points={points} fill="none" stroke={color} strokeWidth="1.5"
+        style={{ filter: `drop-shadow(0 0 4px ${color})` }} />
+    </svg>
+  );
+}
+
+// ── Google G Logo ─────────────────────────────────────────────────────
+function GoogleG({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+    </svg>
+  );
+}
+
+// ── Ambient Background ────────────────────────────────────────────────
+function AmbientBg() {
+  return (
+    <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
+      <div style={{
+        position: "absolute", top: "-20%", left: "-15%", width: "800px", height: "800px", borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(66,133,244,0.16) 0%, rgba(66,133,244,0.04) 45%, transparent 75%)",
+        filter: "blur(100px)", animation: "orbDrift 20s ease-in-out infinite alternate"
+      }} />
+      <div style={{
+        position: "absolute", bottom: "-25%", right: "-20%", width: "700px", height: "700px", borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(16,185,129,0.14) 0%, rgba(52,168,83,0.05) 40%, transparent 75%)",
+        filter: "blur(120px)", animation: "orbDrift 26s ease-in-out infinite alternate-reverse"
+      }} />
+      <div style={{
+        position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
+        width: "600px", height: "600px", borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(251,188,5,0.05) 0%, transparent 70%)",
+        filter: "blur(90px)"
+      }} />
+      {/* Fine dot grid */}
+      <div style={{
+        position: "absolute", inset: 0,
+        backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)",
+        backgroundSize: "32px 32px", opacity: 0.4
+      }} />
+      <div style={{
+        position: "absolute", inset: 0,
+        background: "radial-gradient(ellipse at 50% 0%, transparent 40%, rgba(0,0,0,0.65) 100%)"
+      }} />
+      <style>{`
+        @keyframes orbDrift { from { transform: translate(0,0) scale(1); } to { transform: translate(40px,30px) scale(1.08); } }
+        @keyframes pulse { 0%,100%{box-shadow:0 0 24px rgba(66,133,244,0.55),0 0 48px rgba(66,133,244,0.15);} 50%{box-shadow:0 0 40px rgba(66,133,244,0.8),0 0 80px rgba(66,133,244,0.3);} }
+        @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+        @keyframes starPop { 0%{transform:scale(0) rotate(-20deg)} 100%{transform:scale(1) rotate(0)} }
+      `}</style>
     </div>
   );
 }
@@ -48,567 +83,312 @@ function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', h);
-    return () => window.removeEventListener('scroll', h);
+    window.addEventListener("scroll", h);
+    return () => window.removeEventListener("scroll", h);
   }, []);
 
   return (
-    <motion.header
-      initial={{ y: -80, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-500',
-        scrolled
-          ? 'py-3 border-b border-white/[0.05]'
-          : 'py-5 bg-transparent'
-      )}
-      style={scrolled ? {
-        background: 'rgba(5,5,7,0.85)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-      } : {}}
-    >
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <GMBhubBrand />
+    <header style={{
+      position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
+      padding: scrolled ? "12px 0" : "20px 0",
+      transition: "all 0.4s",
+      background: scrolled ? "rgba(5,5,7,0.88)" : "transparent",
+      backdropFilter: scrolled ? "blur(24px)" : "none",
+      borderBottom: scrolled ? "1px solid rgba(255,255,255,0.05)" : "none"
+    }}>
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        {/* Logo */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 10,
+            background: "linear-gradient(135deg, #4285F4 0%, #34A853 100%)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 0 20px rgba(66,133,244,0.4)"
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M3 3h7v7H3zm0 11h7v7H3zm11-11h7v7h-7zm0 11h7v7h-7z" stroke="white" strokeWidth="1.5" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <span style={{ fontWeight: 900, fontSize: 18, letterSpacing: "-0.02em" }}>
+            <span style={{ color: "#fff" }}>GMB</span><span style={{ color: "#4285F4" }}>hub</span>
+            {" "}<span style={{ color: "#34A853", fontSize: 13, fontWeight: 700 }}>AI</span>
+          </span>
+        </div>
 
-        <nav className="hidden md:flex items-center gap-8 text-sm">
-          {['Features', 'How It Works', 'Pricing', 'Resources'].map((item) => (
-            <a key={item} href={`#${item.toLowerCase().replace(/\s/g, '-')}`}
-              className="text-white/45 hover:text-white transition-colors duration-200 font-medium tracking-wide">
+        {/* Nav links */}
+        <nav style={{ display: "flex", gap: 32, fontSize: 14 }}>
+          {["Features","How It Works","Pricing","Resources"].map(item => (
+            <a key={item} href="#" style={{ color: "rgba(255,255,255,0.45)", textDecoration: "none", fontWeight: 500, letterSpacing: "0.02em", transition: "color 0.2s" }}
+              onMouseEnter={e => e.target.style.color="#fff"} onMouseLeave={e => e.target.style.color="rgba(255,255,255,0.45)"}>
               {item}
             </a>
           ))}
         </nav>
 
-        <div className="flex items-center gap-3">
-          <Link href="/login" className="text-sm text-white/40 hover:text-white transition-colors hidden md:block font-medium">
+        {/* CTAs */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <a href="#" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none", fontSize: 14, fontWeight: 500, transition: "color 0.2s" }}
+            onMouseEnter={e => e.target.style.color="#fff"} onMouseLeave={e => e.target.style.color="rgba(255,255,255,0.4)"}>
             Log in
-          </Link>
-          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-            <Link href="/signup"
-              className="relative flex items-center gap-2 px-5 py-2.5 text-white font-semibold text-sm rounded-xl overflow-hidden"
-              style={{
-                background: '#4285F4',
-                boxShadow: '0 0 24px rgba(66,133,244,0.5), 0 0 48px rgba(66,133,244,0.15), 0 2px 8px rgba(0,0,0,0.4)',
-              }}>
-              <span className="relative z-10 flex items-center gap-2">
-                Start Free Trial
-                <ArrowRight className="w-4 h-4" />
-              </span>
-              {/* Shimmer sweep */}
-              <div className="absolute inset-0 shimmer opacity-60" />
-            </Link>
-          </motion.div>
+          </a>
+          <button style={{
+            display: "flex", alignItems: "center", gap: 8, padding: "10px 20px",
+            background: "#4285F4", color: "#fff", border: "none", borderRadius: 12,
+            fontWeight: 700, fontSize: 14, cursor: "pointer",
+            animation: "pulse 2.5s ease-in-out infinite",
+            position: "relative", overflow: "hidden"
+          }}>
+            Start Free Trial
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
         </div>
       </div>
-    </motion.header>
+    </header>
   );
 }
 
 // ── Phone Mockup ─────────────────────────────────────────────────────
 function PhoneMockup() {
   return (
-    <div className="relative w-[300px] select-none">
-      {/* Multi-layer glow halo */}
-      <div className="absolute inset-0 rounded-full scale-[0.85] translate-y-16 pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse at 50% 60%, rgba(66,133,244,0.35) 0%, rgba(52,168,83,0.18) 40%, transparent 70%)',
-          filter: 'blur(50px)',
-        }} />
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[220px] h-[40px] rounded-full"
-        style={{
-          background: 'rgba(52,168,83,0.4)',
-          filter: 'blur(30px)',
-        }} />
+    <div style={{ position: "relative", width: 300, flexShrink: 0, animation: "float 6s ease-in-out infinite" }}>
+      {/* Glow halos */}
+      <div style={{
+        position: "absolute", inset: 0, borderRadius: "50%", transform: "scale(0.85) translateY(60px)",
+        background: "radial-gradient(ellipse at 50% 60%, rgba(66,133,244,0.4) 0%, rgba(52,168,83,0.2) 40%, transparent 70%)",
+        filter: "blur(50px)", pointerEvents: "none"
+      }} />
+      <div style={{
+        position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)",
+        width: 200, height: 35, borderRadius: "50%",
+        background: "rgba(52,168,83,0.45)", filter: "blur(30px)", pointerEvents: "none"
+      }} />
 
-      <div className="relative z-10 phone-frame">
+      {/* Phone body */}
+      <div style={{
+        position: "relative", zIndex: 10, borderRadius: 44,
+        background: "#060608",
+        border: "1.5px solid rgba(255,255,255,0.14)",
+        boxShadow: "0 0 0 0.5px rgba(255,255,255,0.06), 0 40px 100px rgba(0,0,0,0.9), 0 0 80px rgba(66,133,244,0.08), inset 0 1px 0 rgba(255,255,255,0.1)",
+        overflow: "hidden"
+      }}>
         {/* Status bar */}
-        <div className="bg-[#060608] flex items-center justify-between px-6 pt-3 pb-2 text-[10px] text-white/50 font-mono">
-          <span className="font-semibold">9:41</span>
-          <div className="flex items-center gap-1.5 text-[8px]">
-            <span style={{ letterSpacing: '-1px' }}>▪▪▪▪</span>
-            <span>WiFi</span>
-            <span>▓</span>
+        <div style={{ background: "#060608", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 24px 6px", fontSize: 11, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>
+          <span>9:41</span>
+          <div style={{ display: "flex", gap: 5, fontSize: 9, alignItems: "center" }}>
+            <span>▪▪▪▪</span><span>WiFi</span><span>▓</span>
           </div>
         </div>
 
-        <div className="bg-[#060608] min-h-[580px] px-6 py-5 flex flex-col items-center text-center">
-          {/* Business logo */}
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
-            className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-4 relative"
-            style={{
-              background: 'linear-gradient(135deg, rgba(66,133,244,0.18) 0%, rgba(52,168,83,0.12) 100%)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              boxShadow: '0 0 24px rgba(66,133,244,0.15)',
-            }}>
-            ☕
-          </motion.div>
+        {/* Screen */}
+        <div style={{
+          background: "#060608", minHeight: 540, padding: "20px 24px",
+          display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center"
+        }}>
+          {/* Logo icon */}
+          <div style={{
+            width: 64, height: 64, borderRadius: 18, fontSize: 28,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: "linear-gradient(135deg, rgba(66,133,244,0.18) 0%, rgba(52,168,83,0.12) 100%)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            boxShadow: "0 0 24px rgba(66,133,244,0.18)", marginBottom: 16
+          }}>☕</div>
 
-          <h3 className="text-base font-black mb-1 text-white tracking-tight">Brewed Bliss Cafe</h3>
-          <p className="text-[#4285F4] text-xs font-bold mb-1" style={{ textShadow: '0 0 12px rgba(66,133,244,0.6)' }}>
+          <h3 style={{ fontSize: 15, fontWeight: 900, color: "#fff", marginBottom: 4 }}>Brewed Bliss Cafe</h3>
+          <p style={{ fontSize: 11, fontWeight: 700, color: "#4285F4", marginBottom: 6, textShadow: "0 0 12px rgba(66,133,244,0.6)" }}>
             We'd love your feedback!
           </p>
-          <p className="text-white/35 text-[11px] leading-relaxed mb-5">
-            Your review helps us improve and<br />helps others discover us.
+          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", lineHeight: 1.6, marginBottom: 20 }}>
+            Your review helps us improve<br/>and helps others discover us.
           </p>
 
-          {/* Stars with glow */}
-          <div className="flex gap-1.5 mb-7">
-            {[1,2,3,4,5].map((i) => (
-              <motion.div
-                key={i}
-                initial={{ scale: 0, rotate: -20 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ delay: 0.6 + i * 0.08, type: 'spring', stiffness: 260, damping: 14 }}
-              >
-                <svg className="w-9 h-9" viewBox="0 0 24 24">
-                  <defs>
-                    <radialGradient id={`sg${i}`} cx="50%" cy="30%" r="70%">
-                      <stop offset="0%" stopColor="#FFE066" />
-                      <stop offset="60%" stopColor="#FBBC05" />
-                      <stop offset="100%" stopColor="#F09000" />
-                    </radialGradient>
-                  </defs>
-                  <polygon
-                    points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
-                    fill={`url(#sg${i})`}
-                    style={{ filter: 'drop-shadow(0 0 8px rgba(251,188,5,0.8)) drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}
-                  />
-                </svg>
-              </motion.div>
+          {/* Stars */}
+          <div style={{ display: "flex", gap: 6, marginBottom: 24 }}>
+            {[1,2,3,4,5].map(i => (
+              <svg key={i} width="34" height="34" viewBox="0 0 24 24" style={{ animation: `starPop 0.4s ${i*0.08}s both ease-out` }}>
+                <defs>
+                  <radialGradient id={`sg${i}`} cx="50%" cy="30%" r="70%">
+                    <stop offset="0%" stopColor="#FFE066"/>
+                    <stop offset="60%" stopColor="#FBBC05"/>
+                    <stop offset="100%" stopColor="#F09000"/>
+                  </radialGradient>
+                </defs>
+                <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
+                  fill={`url(#sg${i})`}
+                  style={{ filter: "drop-shadow(0 0 8px rgba(251,188,5,0.8))" }}/>
+              </svg>
             ))}
           </div>
 
-          <div className="w-full space-y-3">
-            {/* Google CTA */}
-            <motion.button
-              className="w-full flex items-center gap-2.5 py-3.5 px-4 text-white font-bold text-sm rounded-2xl relative overflow-hidden"
-              style={{
-                background: '#4285F4',
-                boxShadow: '0 0 28px rgba(66,133,244,0.55), 0 0 56px rgba(66,133,244,0.15), 0 4px 12px rgba(0,0,0,0.4)',
-              }}
-              whileTap={{ scale: 0.97 }}
-            >
-              <GoogleGLogo size={18} />
-              <span className="flex-1 text-center">Leave a Review on Google</span>
-              <ArrowRight className="w-4 h-4 opacity-70" />
-              <div className="absolute inset-0 shimmer opacity-40" />
-            </motion.button>
+          {/* Google CTA */}
+          <button style={{
+            width: "100%", display: "flex", alignItems: "center", gap: 10,
+            padding: "14px 16px", borderRadius: 16, border: "none", cursor: "pointer",
+            background: "#4285F4", color: "#fff", fontWeight: 700, fontSize: 13, marginBottom: 10,
+            boxShadow: "0 0 28px rgba(66,133,244,0.55), 0 4px 12px rgba(0,0,0,0.4)",
+            position: "relative", overflow: "hidden"
+          }}>
+            <GoogleG size={18}/>
+            <span style={{ flex: 1, textAlign: "center" }}>Leave a Review on Google</span>
+          </button>
 
-            {/* Issue CTA */}
-            <button className="w-full flex items-center gap-2.5 py-3 px-4 text-white/50 text-sm rounded-2xl transition-colors hover:bg-white/[0.07]"
-              style={{
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.07)',
-              }}>
-              <svg className="w-4 h-4 shrink-0 text-white/30" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 16 16">
-                <path d="M14 10a1.3 1.3 0 0 1-1.3 1.3H4.7l-2.7 2.7V3.3A1.3 1.3 0 0 1 3.3 2h9.4A1.3 1.3 0 0 1 14 3.3z" />
-              </svg>
-              <span className="flex-1 text-left text-xs">I had an issue — Let us make it right</span>
-              <ArrowRight className="w-3.5 h-3.5 opacity-40" />
-            </button>
-          </div>
+          {/* Issue CTA */}
+          <button style={{
+            width: "100%", display: "flex", alignItems: "center", gap: 8,
+            padding: "11px 14px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.07)",
+            background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 11, cursor: "pointer", marginBottom: 16
+          }}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M14 10a1.3 1.3 0 0 1-1.3 1.3H4.7l-2.7 2.7V3.3A1.3 1.3 0 0 1 3.3 2h9.4A1.3 1.3 0 0 1 14 3.3z"/>
+            </svg>
+            <span>I had an issue — Let us know privately</span>
+          </button>
 
-          <div className="mt-5 flex items-center gap-1.5 text-[#34A853] text-[10px]"
-            style={{ textShadow: '0 0 10px rgba(52,168,83,0.5)' }}>
-            <Shield className="w-3 h-3" />
-            Verified Secure Google OAuth Node
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: "#34A853" }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            Your feedback is private and secure.
           </div>
-          <p className="text-white/20 text-[10px] mt-1">
-            Powered by <span className="text-[#4285F4] font-bold">GMBhub</span> AI
-          </p>
         </div>
       </div>
     </div>
   );
 }
 
-// ── Hero ──────────────────────────────────────────────────────────────
+// ── Hero Section ──────────────────────────────────────────────────────
 function HeroSection() {
-  const [gmbUrl, setGmbUrl] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generated, setGenerated] = useState(false);
-  const [qrSvg, setQrSvg] = useState<string | null>(null);
-  const [qrPng, setQrPng] = useState<string | null>(null);
-  const [qrError, setQrError] = useState<string | null>(null);
+  const [url, setUrl] = useState("");
+  const [state, setState] = useState("idle"); // idle | generating | done
 
-  async function handleGenerate() {
-    if (!gmbUrl) return;
-    setIsGenerating(true);
-    setQrError(null);
-    setQrSvg(null);
-    setQrPng(null);
-    setGenerated(false);
-    try {
-      const res = await fetch('/api/generate-qr', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: gmbUrl, label: 'Landing Page QR' }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error ?? 'QR generation failed');
-      setQrSvg(data.svg);
-      setQrPng(data.png_data_url);
-      setGenerated(true);
-    } catch (err: any) {
-      setQrError(err.message ?? 'Something went wrong. Please try again.');
-    } finally {
-      setIsGenerating(false);
-    }
-  }
-
-  function handleDownload() {
-    if (!qrPng) return;
-    const a = document.createElement('a');
-    a.href = qrPng;
-    a.download = 'gmbhub-review-qr.png';
-    a.click();
-  }
-
-  function handleReset() {
-    setGenerated(false);
-    setQrSvg(null);
-    setQrPng(null);
-    setQrError(null);
-    setGmbUrl('');
-  }
+  const handleGenerate = () => {
+    if (!url) return;
+    setState("generating");
+    setTimeout(() => setState("done"), 1800);
+  };
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-28 pb-20">
-      <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          {/* Left */}
-          <div>
-            {/* Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8"
-              style={{
-                background: 'rgba(66,133,244,0.08)',
-                border: '1px solid rgba(66,133,244,0.2)',
-                boxShadow: '0 0 20px rgba(66,133,244,0.08)',
-              }}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-[#4285F4]" />
-              <span className="text-[#4285F4] text-xs font-bold tracking-widest">AI-POWERED GOOGLE BUSINESS GROWTH</span>
-            </motion.div>
+    <section style={{ minHeight: "100vh", display: "flex", alignItems: "center", paddingTop: 80, paddingBottom: 60 }}>
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px", width: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }}>
 
-            {/* Headline */}
-            <motion.h1
-              initial={{ opacity: 0, y: 32 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.22, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="text-5xl md:text-[3.75rem] font-black leading-[1.06] mb-6 tracking-tight"
-            >
-              Turn Foot Traffic<br />
-              into{' '}
-              <span
-                className="text-[#34A853]"
-                style={{ textShadow: '0 0 32px rgba(52,168,83,0.7), 0 0 64px rgba(52,168,83,0.3)' }}
-              >
-                5-Star
-              </span>{' '}
-              Google Reviews.
-              <br />
-              <span
-                className="text-[#4285F4]"
-                style={{ textShadow: '0 0 32px rgba(66,133,244,0.8), 0 0 64px rgba(66,133,244,0.35)' }}
-              >
-                Instantly.
-              </span>
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.38 }}
-              className="text-lg text-white/45 max-w-lg mb-10 leading-relaxed"
-            >
-              GMBhub AI helps local businesses rank higher, attract more customers,
-              and build a 5-star reputation on{' '}
-              <span className="text-[#34A853] font-semibold" style={{ textShadow: '0 0 12px rgba(52,168,83,0.5)' }}>autopilot.</span>
-            </motion.p>
-
-            {/* Input card */}
-            <motion.div
-              initial={{ opacity: 0, y: 28 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.52 }}
-              className="p-[1px] rounded-2xl mb-8"
-              style={{
-                background: gmbUrl
-                  ? 'linear-gradient(135deg, rgba(66,133,244,0.5), rgba(52,168,83,0.3))'
-                  : 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))',
-              }}
-            >
-              <div
-                className="p-5 rounded-2xl"
-                style={{
-                  background: '#08080C',
-                  boxShadow: gmbUrl
-                    ? '0 0 40px rgba(66,133,244,0.12), 0 12px 40px rgba(0,0,0,0.6)'
-                    : '0 12px 40px rgba(0,0,0,0.5)',
-                }}
-              >
-                <div className="flex gap-3 mb-4">
-                  <div
-                    className="flex items-center gap-2.5 flex-1 rounded-xl px-4 py-3 transition-all duration-300 focus-within:border-[#4285F4]/40"
-                    style={{
-                      background: '#0F0F14',
-                      border: gmbUrl ? '1px solid rgba(66,133,244,0.35)' : '1px solid rgba(255,255,255,0.07)',
-                      boxShadow: gmbUrl ? '0 0 0 3px rgba(66,133,244,0.06)' : 'none',
-                    }}
-                  >
-                    <svg className="w-4 h-4 text-[#4285F4] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor" />
-                    </svg>
-                    <input
-                      type="url"
-                      value={gmbUrl}
-                      onChange={(e) => { setGmbUrl(e.target.value); setGenerated(false); setQrSvg(null); setQrPng(null); setQrError(null); }}
-                      placeholder="Paste your Google Business Profile / Maps link"
-                      className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/25"
-                    />
-                  </div>
-
-                  <motion.button
-                    onClick={handleGenerate}
-                    disabled={!gmbUrl || isGenerating}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                    className={cn(
-                      'flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white',
-                      'disabled:opacity-50 disabled:cursor-not-allowed transition-all relative overflow-hidden',
-                      generated ? 'bg-[#34A853]' : 'bg-[#4285F4] hover:bg-[#3367D6]'
-                    )}
-                    style={gmbUrl && !isGenerating ? {
-                      boxShadow: generated
-                        ? '0 0 24px rgba(52,168,83,0.55), 0 0 48px rgba(52,168,83,0.15)'
-                        : '0 0 24px rgba(66,133,244,0.55), 0 0 48px rgba(66,133,244,0.15)',
-                    } : {}}
-                  >
-                    {isGenerating ? (
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}
-                        className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
-                      />
-                    ) : generated ? (
-                      <Check className="w-4 h-4" />
-                    ) : (
-                      <QrCode className="w-4 h-4" />
-                    )}
-                    <span className="whitespace-nowrap">
-                      {isGenerating ? 'Generating...' : generated ? 'Generated!' : 'Generate Smart QR'}
-                    </span>
-                    {gmbUrl && !isGenerating && <div className="absolute inset-0 shimmer opacity-50" />}
-                  </motion.button>
-                </div>
-
-                {/* QR Result */}
-                <AnimatePresence>
-                  {(qrSvg || qrError) && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                      animate={{ opacity: 1, height: 'auto', marginBottom: 16 }}
-                      exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                      className="overflow-hidden"
-                    >
-                      {qrError ? (
-                        <div className="flex items-start gap-3 p-4 rounded-xl"
-                          style={{ background: 'rgba(234,67,53,0.08)', border: '1px solid rgba(234,67,53,0.2)' }}>
-                          <X className="w-4 h-4 text-[#EA4335] shrink-0 mt-0.5" />
-                          <div className="flex-1">
-                            <p className="text-[#EA4335] text-xs font-semibold mb-0.5">Generation failed</p>
-                            <p className="text-white/50 text-xs">{qrError}</p>
-                          </div>
-                          <button onClick={handleReset} className="text-white/30 hover:text-white/60 transition-colors">
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ) : qrSvg ? (
-                        <div className="flex items-center gap-4 p-4 rounded-xl"
-                          style={{ background: 'rgba(52,168,83,0.08)', border: '1px solid rgba(52,168,83,0.2)' }}>
-                          <div
-                            className="w-20 h-20 shrink-0 rounded-lg overflow-hidden p-1.5"
-                            style={{ background: '#0A0A0C', border: '1px solid rgba(52,168,83,0.3)' }}
-                            dangerouslySetInnerHTML={{ __html: qrSvg }}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <Check className="w-3.5 h-3.5 text-[#34A853] shrink-0" />
-                              <p className="text-white text-sm font-bold">QR Code Ready!</p>
-                            </div>
-                            <p className="text-white/35 text-xs mb-3 truncate">{gmbUrl}</p>
-                            <div className="flex items-center gap-3">
-                              <motion.button
-                                onClick={handleDownload}
-                                whileHover={{ scale: 1.03 }}
-                                whileTap={{ scale: 0.97 }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-black"
-                                style={{ background: '#34A853', boxShadow: '0 0 14px rgba(52,168,83,0.45)' }}
-                              >
-                                <Download className="w-3 h-3" />
-                                Download PNG
-                              </motion.button>
-                              <button onClick={handleReset} className="text-xs text-white/30 hover:text-white/60 transition-colors">
-                                Generate another →
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ) : null}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Trust badges */}
-                <div className="flex flex-wrap items-center gap-5 text-xs text-white/30">
-                  <span className="flex items-center gap-1.5">
-                    <Check className="w-3.5 h-3.5 text-[#34A853]" />
-                    No credit card required
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-[#FBBC05]" fill="currentColor" />
-                    Setup in 30 seconds
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <Shield className="w-3.5 h-3.5 text-[#4285F4]" />
-                    AI-powered funnel
-                  </span>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Stats row */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.7 }}
-              className="flex items-center gap-8 flex-wrap"
-            >
-              {[
-                { v: '10,000+', l: 'Businesses Trust Us' },
-                { v: '2M+', l: 'Reviews Generated' },
-                { v: '4.9★', l: 'Avg Rating Increase' },
-                { v: '99.3%', l: 'Satisfaction' },
-              ].map((s, i) => (
-                <div key={s.v} className="relative">
-                  {i > 0 && (
-                    <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-px h-6 bg-white/10" />
-                  )}
-                  <p className="text-xl font-black text-white">{s.v}</p>
-                  <p className="text-xs text-white/35 mt-0.5">{s.l}</p>
-                </div>
-              ))}
-            </motion.div>
+        {/* Left */}
+        <div>
+          {/* Badge */}
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            padding: "8px 16px", borderRadius: 999, marginBottom: 28,
+            background: "rgba(66,133,244,0.08)", border: "1px solid rgba(66,133,244,0.22)",
+            boxShadow: "0 0 20px rgba(66,133,244,0.08)"
+          }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="#4285F4"/>
+            </svg>
+            <span style={{ color: "#4285F4", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em" }}>AI-POWERED GOOGLE BUSINESS GROWTH</span>
           </div>
 
-          {/* Right: phone */}
-          <motion.div
-            initial={{ opacity: 0, x: 48, y: 20 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            transition={{ delay: 0.28, duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            className="flex justify-center lg:justify-end"
-          >
-            <div className="animate-float">
-              <PhoneMockup />
-            </div>
-          </motion.div>
-        </div>
-      </div>
-    </section>
-  );
-}
+          {/* Headline */}
+          <h1 style={{ fontSize: "3.75rem", fontWeight: 900, lineHeight: 1.06, marginBottom: 20, letterSpacing: "-0.03em" }}>
+            Turn Foot Traffic<br/>
+            into{" "}
+            <span style={{ color: "#34A853", textShadow: "0 0 32px rgba(52,168,83,0.7), 0 0 64px rgba(52,168,83,0.3)" }}>5-Star</span>
+            {" "}Google Reviews.
+            <br/>
+            <span style={{ color: "#4285F4", textShadow: "0 0 32px rgba(66,133,244,0.8), 0 0 64px rgba(66,133,244,0.35)" }}>Instantly.</span>
+          </h1>
 
-// ── Features ──────────────────────────────────────────────────────────
-function FeaturesSection() {
-  const features = [
-    { icon: QrCode, title: 'Smart QR Codes', desc: 'AI-generated QR codes that route customers directly to your review funnel.', color: '#4285F4' },
-    { icon: BarChart3, title: 'AI Review Funnel', desc: 'Mobile-first experience that converts happy customers into 5-star reviews.', color: '#34A853' },
-    { icon: TrendingUp, title: 'Review Analytics', desc: 'Real-time insights, growth tracking, and smart performance reports.', color: '#FBBC05' },
-    { icon: Bot, title: 'Automated Follow-ups', desc: 'AI sends personalized follow-ups to turn customers into raving fans.', color: '#4285F4' },
-    { icon: Shield, title: 'Reputation Protection', desc: 'Detect and resolve negative feedback privately before it goes public.', color: '#EA4335' },
-  ];
+          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.45)", marginBottom: 36, lineHeight: 1.65, maxWidth: 480 }}>
+            GMBhub AI helps local businesses rank higher, attract more customers,
+            and build a 5-star reputation on{" "}
+            <span style={{ color: "#34A853", fontWeight: 600, textShadow: "0 0 12px rgba(52,168,83,0.5)" }}>autopilot.</span>
+          </p>
 
-  return (
-    <section id="features" className="py-28 relative overflow-hidden">
-      {/* Section orbs */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(52,168,83,0.08) 0%, transparent 70%)', filter: 'blur(80px)' }} />
-
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid lg:grid-cols-2 gap-20 items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-          >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg mb-6 text-[#34A853] text-xs font-bold tracking-widest"
-              style={{ background: 'rgba(52,168,83,0.08)', border: '1px solid rgba(52,168,83,0.2)' }}>
-              BUILT FOR LOCAL GROWTH
-            </div>
-            <h2 className="text-4xl md:text-5xl font-black leading-tight mb-10">
-              Everything you need to<br />dominate{' '}
-              <span className="text-[#34A853]" style={{ textShadow: '0 0 24px rgba(52,168,83,0.6)' }}>local search</span>
-              <br />on Google.
-            </h2>
-
-            <div className="space-y-3">
-              {features.map((feature, i) => (
-                <motion.div
-                  key={feature.title}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.08 }}
-                  className="flex items-start gap-4 p-4 rounded-2xl cursor-default group transition-all duration-300"
+          {/* Input Card */}
+          <div style={{
+            padding: 1, borderRadius: 20, marginBottom: 28,
+            background: url ? "linear-gradient(135deg, rgba(66,133,244,0.5), rgba(52,168,83,0.3))" : "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))"
+          }}>
+            <div style={{
+              padding: 18, borderRadius: 19,
+              background: "#08080C",
+              boxShadow: url ? "0 0 40px rgba(66,133,244,0.12), 0 12px 40px rgba(0,0,0,0.6)" : "0 12px 40px rgba(0,0,0,0.5)"
+            }}>
+              <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 10, flex: 1,
+                  padding: "12px 16px", borderRadius: 12,
+                  background: "#0F0F14",
+                  border: url ? "1px solid rgba(66,133,244,0.35)" : "1px solid rgba(255,255,255,0.07)",
+                  boxShadow: url ? "0 0 0 3px rgba(66,133,244,0.06)" : "none"
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#4285F4">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                  </svg>
+                  <input
+                    type="url" value={url} onChange={e => { setUrl(e.target.value); setState("idle"); }}
+                    placeholder="Paste your Google Business Profile / Maps link"
+                    style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "#fff", fontSize: 13.5 }}
+                  />
+                </div>
+                <button
+                  onClick={handleGenerate}
+                  disabled={!url || state === "generating"}
                   style={{
-                    background: '#08080C',
-                    border: '1px solid rgba(255,255,255,0.05)',
-                    boxShadow: '0 2px 12px rgba(0,0,0,0.35)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.border = `1px solid ${feature.color}25`;
-                    e.currentTarget.style.boxShadow = `0 4px 24px rgba(0,0,0,0.4), 0 0 0 1px ${feature.color}10`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.border = '1px solid rgba(255,255,255,0.05)';
-                    e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.35)';
-                  }}
-                >
-                  <div className="p-2.5 rounded-xl shrink-0" style={{ backgroundColor: `${feature.color}12`, border: `1px solid ${feature.color}20` }}>
-                    <feature.icon className="w-[18px] h-[18px]" style={{ color: feature.color }} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-sm mb-1">{feature.title}</p>
-                    <p className="text-xs text-white/40 leading-relaxed">{feature.desc}</p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/50 group-hover:translate-x-0.5 transition-all mt-0.5 shrink-0" />
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
+                    display: "flex", alignItems: "center", gap: 8,
+                    padding: "12px 20px", borderRadius: 12, border: "none", cursor: url ? "pointer" : "not-allowed",
+                    background: state === "done" ? "#34A853" : "#4285F4",
+                    color: "#fff", fontWeight: 700, fontSize: 13, whiteSpace: "nowrap",
+                    boxShadow: url ? `0 0 24px ${state === "done" ? "rgba(52,168,83,0.6)" : "rgba(66,133,244,0.6)"}, 0 0 48px ${state === "done" ? "rgba(52,168,83,0.15)" : "rgba(66,133,244,0.15)"}` : "none",
+                    opacity: !url ? 0.5 : 1, transition: "all 0.3s"
+                  }}>
+                  {state === "generating" ? (
+                    <div style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite" }}/>
+                  ) : state === "done" ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 13l4 4L19 7"/></svg>
+                  ) : (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                    </svg>
+                  )}
+                  {state === "generating" ? "Generating..." : state === "done" ? "Generated!" : "Generate Smart QR"}
+                </button>
+              </div>
+              <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="flex justify-center"
-          >
-            <div className="animate-float" style={{ animationDelay: '3s' }}>
-              <PhoneMockup />
+              {/* Trust micro-badges */}
+              <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+                {[
+                  { icon: "✓", color: "#34A853", text: "No credit card required" },
+                  { icon: "⚡", color: "#FBBC05", text: "Setup in 30 seconds" },
+                  { icon: "✦", color: "#4285F4", text: "AI-powered funnel" },
+                ].map(b => (
+                  <span key={b.text} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "rgba(255,255,255,0.3)" }}>
+                    <span style={{ color: b.color }}>{b.icon}</span> {b.text}
+                  </span>
+                ))}
+              </div>
             </div>
-          </motion.div>
+          </div>
+
+          {/* Stats */}
+          <div style={{ display: "flex", gap: 0, flexWrap: "wrap" }}>
+            {[
+              { v: "10,000+", l: "Businesses Trust Us" },
+              { v: "2M+", l: "Reviews Generated" },
+              { v: "4.9★", l: "Avg Rating Increase" },
+              { v: "99.3%", l: "Satisfaction" },
+            ].map((s, i) => (
+              <div key={s.v} style={{ paddingRight: 28, paddingLeft: i > 0 ? 28 : 0, borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.1)" : "none" }}>
+                <div style={{ fontSize: 22, fontWeight: 900, color: "#fff" }}>{s.v}</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right: Phone */}
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <PhoneMockup/>
         </div>
       </div>
     </section>
@@ -617,247 +397,143 @@ function FeaturesSection() {
 
 // ── Stats Bar ─────────────────────────────────────────────────────────
 function StatsBar() {
+  const stats = [
+    { icon: "👥", v: "10,000+", l: "Businesses Trust Us", c: "#4285F4" },
+    { icon: "⭐", v: "2M+", l: "5-Star Reviews Generated", c: "#FBBC05" },
+    { icon: "📈", v: "4.9★", l: "Average Rating Increase", c: "#34A853" },
+    { icon: "🛡", v: "99.3%", l: "Customer Satisfaction", c: "#4285F4" },
+  ];
   return (
-    <section className="py-10 relative overflow-hidden"
-      style={{
-        borderTop: '1px solid rgba(255,255,255,0.05)',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
-        background: 'rgba(8,8,12,0.6)',
-      }}>
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {[
-            { icon: Users, v: '10,000+', l: 'Businesses Trust Us', c: '#4285F4' },
-            { icon: Star, v: '2M+', l: '5-Star Reviews Generated', c: '#FBBC05' },
-            { icon: TrendingUp, v: '4.9★', l: 'Average Rating Increase', c: '#34A853' },
-            { icon: Shield, v: '99.3%', l: 'Customer Satisfaction', c: '#4285F4' },
-          ].map((s, i) => (
-            <motion.div
-              key={s.l}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08 }}
-              className="flex items-center gap-4"
-            >
-              <div className="p-3 rounded-xl shrink-0"
-                style={{
-                  backgroundColor: `${s.c}10`,
-                  border: `1px solid ${s.c}20`,
-                  boxShadow: `0 0 16px ${s.c}10`,
-                }}>
-                <s.icon className="w-5 h-5" style={{ color: s.c }} />
+    <section style={{ borderTop: "1px solid rgba(255,255,255,0.05)", borderBottom: "1px solid rgba(255,255,255,0.05)", background: "rgba(8,8,12,0.6)", padding: "36px 0" }}>
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24 }}>
+        {stats.map(s => (
+          <div key={s.l} style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20,
+              background: `${s.c}12`, border: `1px solid ${s.c}22`, boxShadow: `0 0 16px ${s.c}12`
+            }}>{s.icon}</div>
+            <div>
+              <div style={{ fontSize: 24, fontWeight: 900 }}>{s.v}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>{s.l}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ── Features ──────────────────────────────────────────────────────────
+function FeaturesSection() {
+  const features = [
+    { icon: "⬛", color: "#4285F4", title: "Smart QR Codes", desc: "AI-generated QR codes that route customers directly to your 5-star review funnel, instantly." },
+    { icon: "🤖", color: "#34A853", title: "AI Review Funnel", desc: "Mobile-first experience converting happy customers into 5-star Google reviews automatically." },
+    { icon: "📊", color: "#FBBC05", title: "Real-time Analytics", desc: "Live insights, growth tracking, and smart performance reports with trend visualization." },
+    { icon: "⚡", color: "#4285F4", title: "Automated Follow-ups", desc: "AI sends personalized follow-ups turning satisfied customers into loyal brand advocates." },
+    { icon: "🛡", color: "#EA4335", title: "Reputation Protection", desc: "Detect and route negative feedback privately before it reaches public review platforms." },
+  ];
+  return (
+    <section style={{ padding: "100px 0", position: "relative" }}>
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }}>
+        <div>
+          <div style={{
+            display: "inline-flex", padding: "6px 12px", borderRadius: 8, marginBottom: 24,
+            background: "rgba(52,168,83,0.08)", border: "1px solid rgba(52,168,83,0.2)",
+            color: "#34A853", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em"
+          }}>BUILT FOR LOCAL GROWTH</div>
+          <h2 style={{ fontSize: "3rem", fontWeight: 900, lineHeight: 1.1, marginBottom: 32 }}>
+            Everything you need<br/>to dominate{" "}
+            <span style={{ color: "#34A853", textShadow: "0 0 24px rgba(52,168,83,0.6)" }}>local search</span>
+            <br/>on Google.
+          </h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {features.map(f => (
+              <div key={f.title} style={{
+                display: "flex", alignItems: "flex-start", gap: 14, padding: 14, borderRadius: 16,
+                background: "#08080C", border: "1px solid rgba(255,255,255,0.05)",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.35)", cursor: "default", transition: "border-color 0.2s"
+              }}
+                onMouseEnter={e => e.currentTarget.style.borderColor=`${f.color}30`}
+                onMouseLeave={e => e.currentTarget.style.borderColor="rgba(255,255,255,0.05)"}
+              >
+                <div style={{ padding: 8, borderRadius: 10, background: `${f.color}12`, border: `1px solid ${f.color}22`, fontSize: 16, flexShrink: 0 }}>{f.icon}</div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 3 }}>{f.title}</div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>{f.desc}</div>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-black">{s.v}</p>
-                <p className="text-xs text-white/35">{s.l}</p>
-              </div>
-            </motion.div>
-          ))}
+            ))}
+          </div>
+        </div>
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <PhoneMockup/>
         </div>
       </div>
     </section>
   );
 }
 
-// ── Pricing ───────────────────────────────────────────────────────────
-function PricingSection({ currency }: { currency: CurrencyConfig }) {
-  const planAccents: Record<string, { border: string; glow: string; btn: string; badge?: string }> = {
-    free:       { border: '#34A853', glow: 'rgba(52,168,83,0.15)',  btn: '#34A853' },
-    starter:    { border: '#4285F4', glow: 'rgba(66,133,244,0.15)', btn: '#4285F4' },
-    pro:        { border: '#FBBC05', glow: 'rgba(251,188,5,0.22)',  btn: '#FBBC05', badge: 'MOST POPULAR' },
-    enterprise: { border: '#EA4335', glow: 'rgba(234,67,53,0.15)',  btn: '#EA4335' },
-  };
-
+// ── Footer ────────────────────────────────────────────────────────────
+function Footer() {
   return (
-    <section id="pricing" className="py-28 relative overflow-hidden">
-      {/* Top center orb */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(66,133,244,0.1) 0%, transparent 70%)', filter: 'blur(60px)' }} />
-
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg mb-6 text-[#4285F4] text-xs font-bold tracking-widest"
-            style={{ background: 'rgba(66,133,244,0.08)', border: '1px solid rgba(66,133,244,0.2)' }}
-          >
-            SIMPLE PRICING
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-black mb-4"
-          >
-            Transparent Pricing
-          </motion.h2>
-          <p className="text-white/40 text-lg">
-            QR codes are <span className="text-[#34A853] font-semibold">always free</span>. Pay only when you grow.
-          </p>
+    <footer style={{ borderTop: "1px solid rgba(255,255,255,0.05)", padding: "32px 24px" }}>
+      <div style={{ maxWidth: 1280, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ fontWeight: 900, fontSize: 16 }}>
+          <span>GMB</span><span style={{ color: "#4285F4" }}>hub</span> <span style={{ color: "#34A853", fontSize: 12 }}>AI</span>
         </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
-          {PRICING_PLANS.map((plan, i) => {
-            const accent = planAccents[plan.id] ?? planAccents.free;
-            return (
-              <motion.div
-                key={plan.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                className="relative p-6 rounded-2xl border flex flex-col"
-                style={{
-                  borderColor: `${accent.border}25`,
-                  background: plan.highlighted
-                    ? 'linear-gradient(160deg, rgba(16,16,22,1) 0%, rgba(8,8,12,1) 100%)'
-                    : '#08080C',
-                  boxShadow: plan.highlighted
-                    ? `0 0 50px ${accent.glow}, 0 12px 40px rgba(0,0,0,0.6), 0 0 0 1px ${accent.border}15`
-                    : '0 4px 24px rgba(0,0,0,0.4)',
-                }}
-              >
-                {/* Top accent stripe */}
-                <div className="absolute top-0 left-6 right-6 h-px rounded-full"
-                  style={{ background: `linear-gradient(90deg, transparent, ${accent.border}80, transparent)` }} />
-
-                {accent.badge && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 text-black text-[10px] font-black rounded-full tracking-widest"
-                    style={{ backgroundColor: accent.btn, boxShadow: `0 0 20px ${accent.glow}` }}>
-                    {accent.badge}
-                  </div>
-                )}
-
-                <div className="mb-6 pt-2">
-                  <p className="text-xs font-bold text-white/35 mb-2 uppercase tracking-widest">{plan.name}</p>
-                  <div className="flex items-end gap-1">
-                    <span className="text-4xl font-black">
-                      {plan.monthly_price_usd === 0 ? 'Free' : formatPrice(plan.monthly_price_usd, currency)}
-                    </span>
-                    {plan.monthly_price_usd > 0 && <span className="text-white/25 text-sm mb-1.5">/mo</span>}
-                  </div>
-                  <p className="text-xs text-white/25 mt-1">
-                    {plan.scan_limit >= 999999 ? 'Unlimited' : formatNumber(plan.scan_limit)} scans/mo
-                  </p>
-                </div>
-
-                <ul className="space-y-2.5 flex-1 mb-6">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-xs text-white/55">
-                      <Check className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: accent.border }} />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="w-full py-3 rounded-xl text-sm font-bold transition-all relative overflow-hidden"
-                  style={{
-                    backgroundColor: accent.btn,
-                    color: plan.id === 'pro' ? '#000' : '#fff',
-                    boxShadow: `0 0 20px ${accent.glow}, 0 4px 12px rgba(0,0,0,0.3)`,
-                  }}
-                >
-                  <span className="relative z-10">
-                    {plan.monthly_price_usd === 0 ? 'Get Started Free' : 'Start Trial'}
-                  </span>
-                  <div className="absolute inset-0 shimmer opacity-50" />
-                </motion.button>
-              </motion.div>
-            );
-          })}
+        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.18)", textAlign: "center" }}>
+          © 2025 GMBhub. All rights reserved. Not affiliated with Google LLC.
+        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34A853" strokeWidth="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          Built Securely using Google Maps API V3
         </div>
       </div>
-    </section>
+    </footer>
   );
 }
 
 // ── Page ──────────────────────────────────────────────────────────────
 export default function LandingPage() {
-  const [currency, setCurrency] = useState<CurrencyConfig>({ code: 'USD', symbol: '$', locale: 'en-US', rate: 1 });
-
-  useEffect(() => {
-    const locale = navigator.language || 'en-US';
-    const country = locale.split('-')[1] || 'US';
-    if (CURRENCY_MAP[country]) setCurrency(CURRENCY_MAP[country]);
-  }, []);
-
   return (
-    <>
-      <AmbientBackground />
-      <Navbar />
-      <main className="relative z-10">
-        <HeroSection />
-        <StatsBar />
-        <FeaturesSection />
-        <PricingSection currency={currency} />
+    <div style={{ background: "#020204", color: "#fff", fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif", minHeight: "100vh", position: "relative" }}>
+      <AmbientBg/>
+      <div style={{ position: "relative", zIndex: 10 }}>
+        <Navbar/>
+        <HeroSection/>
+        <StatsBar/>
+        <FeaturesSection/>
 
-        {/* Final CTA */}
-        <section className="py-28 text-center relative overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none"
-            style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(66,133,244,0.12) 0%, transparent 60%)' }} />
-          <div className="relative z-10 max-w-3xl mx-auto px-6">
-            <div className="flex justify-center mb-8">
-              <GMBhubLogo size="lg" animated />
-            </div>
-            <h2 className="text-5xl font-black mb-6">
-              Ready to grow your<br />
-              <span className="text-[#34A853]" style={{ textShadow: '0 0 32px rgba(52,168,83,0.6)' }}>
-                Google Reviews?
-              </span>
+        {/* CTA */}
+        <section style={{ padding: "80px 24px", textAlign: "center", position: "relative" }}>
+          <div style={{
+            position: "absolute", inset: 0, pointerEvents: "none",
+            background: "radial-gradient(ellipse at 50% 0%, rgba(66,133,244,0.12) 0%, transparent 60%)"
+          }}/>
+          <div style={{ maxWidth: 680, margin: "0 auto", position: "relative" }}>
+            <h2 style={{ fontSize: "3rem", fontWeight: 900, marginBottom: 20 }}>
+              Ready to grow your<br/>
+              <span style={{ color: "#34A853", textShadow: "0 0 32px rgba(52,168,83,0.6)" }}>Google Reviews?</span>
             </h2>
-            <p className="text-white/40 mb-10 text-lg">
+            <p style={{ color: "rgba(255,255,255,0.4)", marginBottom: 36, fontSize: 16 }}>
               Join 10,000+ businesses using GMBhub to dominate local search.
             </p>
-            <Link href="/signup">
-              <motion.div
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.97 }}
-                className="inline-flex items-center gap-3 px-8 py-4 text-white font-bold text-lg rounded-2xl cursor-pointer relative overflow-hidden"
-                style={{
-                  background: '#4285F4',
-                  boxShadow: '0 0 40px rgba(66,133,244,0.5), 0 0 80px rgba(66,133,244,0.15), 0 4px 20px rgba(0,0,0,0.5)',
-                }}
-              >
-                <span className="relative z-10 flex items-center gap-3">
-                  Start Free — No Credit Card
-                  <ArrowRight className="w-5 h-5" />
-                </span>
-                <div className="absolute inset-0 shimmer" />
-              </motion.div>
-            </Link>
-
-            <div className="flex items-center justify-center gap-8 mt-10 flex-wrap">
-              {[
-                { icon: Shield, label: 'SOC 2 Compliant', color: '#34A853' },
-                { icon: Check, label: 'GDPR Ready', color: '#4285F4' },
-                { icon: Zap, label: 'Setup in 30 seconds', color: '#FBBC05' },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center gap-2 text-white/30 text-xs">
-                  <item.icon className="w-3.5 h-3.5" style={{ color: item.color }} />
-                  {item.label}
-                </div>
-              ))}
-            </div>
+            <button style={{
+              display: "inline-flex", alignItems: "center", gap: 10,
+              padding: "16px 36px", borderRadius: 18, border: "none", cursor: "pointer",
+              background: "#4285F4", color: "#fff", fontWeight: 700, fontSize: 16,
+              animation: "pulse 2.5s ease-in-out infinite"
+            }}>
+              Start Free — No Credit Card
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
           </div>
         </section>
-      </main>
 
-      <footer className="relative z-10 border-t py-10 px-6" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <GMBhubBrand />
-          <p className="text-white/18 text-xs text-center">
-            © 2025 GMBhub. All rights reserved. Not affiliated with Google LLC.
-          </p>
-          <GooglePartnerSeal variant="compact" />
-        </div>
-      </footer>
-    </>
+        <Footer/>
+      </div>
+    </div>
   );
 }

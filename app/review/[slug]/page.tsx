@@ -1,8 +1,9 @@
 "use client";
+import React from "react";
 import { useState, useEffect } from "react";
 
 // ── Google G Logo ─────────────────────────────────────────────────────
-function GoogleG({ size = 20 }) {
+function GoogleG({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24">
       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -14,7 +15,7 @@ function GoogleG({ size = 20 }) {
 }
 
 // ── 3D Gold Star ──────────────────────────────────────────────────────
-function GoldStar({ index, lit, onClick, onHover, onLeave }) {
+function GoldStar({ index, lit, onClick, onHover, onLeave }: { index: number; lit: boolean; onClick: () => void; onHover: (i: number) => void; onLeave: () => void }) {
   return (
     <button
       onClick={onClick} onMouseEnter={onHover} onMouseLeave={onLeave}
@@ -82,7 +83,7 @@ const reviewCards = [
   { id: 3, text: "Brewed Bliss is our go-to spot now. Amazing service, delicious pastries, and wonderful coffee. 5 stars every time!" },
 ];
 
-function PositiveFlow({ onBack }) {
+function PositiveFlow({ onBack }: { onBack: () => void }) {
   const [copied, setCopied] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
 
@@ -177,7 +178,7 @@ function PositiveFlow({ onBack }) {
 // ── Negative Flow — Private Feedback ─────────────────────────────────
 const issueTags = ["Taste Issue", "Service Delay", "Hygiene", "Pricing", "Ambience", "Wait Time", "Cleanliness", "Staff"];
 
-function NegativeFlow({ onBack }) {
+function NegativeFlow({ onBack }: { onBack: () => void }) {
   const [selected, setSelected] = useState([]);
   const [msg, setMsg] = useState("");
   const [sent, setSent] = useState(false);
@@ -293,7 +294,7 @@ function NegativeFlow({ onBack }) {
 }
 
 // ── Main Review Screen ────────────────────────────────────────────────
-function ReviewScreen({ onPositive, onNegative }) {
+function ReviewScreen({ onPositive, onNegative }: { onPositive: () => void; onNegative: () => void }) {
   const [hovered, setHovered] = useState(0);
   const [selected, setSelected] = useState(0);
 
@@ -431,7 +432,7 @@ function ReviewScreen({ onPositive, onNegative }) {
 }
 
 // ── Phone Chassis ─────────────────────────────────────────────────────
-function PhoneChassis({ children }) {
+function PhoneChassis({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ position: "relative", width: 390, flexShrink: 0 }}>
       {/* Glow */}

@@ -440,8 +440,8 @@ function ThankYouPhase({ business }: { business: BusinessConfig }) {
         <br />We'll use it to improve your next visit.
       </p>
       <div className="mt-8 flex items-center gap-1.5 text-xs text-white/25">
-        <Zap className="w-3 h-3 text-[#00D4FF]" fill="currentColor" />
-        Powered by <span className="text-[#00D4FF]">ReviewPulse AI</span>
+        
+        Powered by <span style={{ color: '#4285F4' }} className="font-bold">GMBhub</span>
       </div>
     </motion.div>
   );

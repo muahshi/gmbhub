@@ -403,7 +403,7 @@ export default function Dashboard() {
                   <XAxis dataKey="date" tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false}/>
                   <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => v >= 1000 ? `${(v/1000).toFixed(0)}K` : String(v)}/>
                   <Tooltip content={<CustomTooltip/>}/>
-                  <Line type="monotone" dataKey="scans" name="Total Scans" stroke="#4285F4" strokeWidth={2.5} dot={{ fill: "#4285F4", r: 4, strokeWidth: 0 }} activeDot={{ r: 6, fill: "#4285F4", boxShadow: "0 0 12px #4285F4" }}
+                  <Line type="monotone" dataKey="scans" name="Total Scans" stroke="#4285F4" strokeWidth={2.5} dot={{ fill: "#4285F4", r: 4, strokeWidth: 0 }} activeDot={{ r: 6, fill: "#4285F4" }}
                     style={{ filter: "drop-shadow(0px 4px 10px rgba(66,133,244,0.7))" }}/>
                   <Line type="monotone" dataKey="redirects" name="Google Redirects" stroke="#34A853" strokeWidth={2.5} dot={{ fill: "#34A853", r: 4, strokeWidth: 0 }} activeDot={{ r: 6 }}
                     style={{ filter: "drop-shadow(0px 4px 10px rgba(52,168,83,0.7))" }}/>

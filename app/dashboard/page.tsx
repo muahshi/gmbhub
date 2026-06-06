@@ -52,10 +52,10 @@ function GoogleG({ size = 14 }: { size?: number }) {
 function Sparkline({ color, pts }: { color: string; pts?: number[] }) {
   const [progress, setProgress] = useState(0);
   useEffect(() => {
-    let raf;
+    let raf: number;
     const start = performance.now();
     const dur = 1200;
-    const tick = (now) => {
+    const tick = (now: number) => {
       setProgress(Math.min((now - start) / dur, 1));
       if ((now - start) < dur) raf = requestAnimationFrame(tick);
     };

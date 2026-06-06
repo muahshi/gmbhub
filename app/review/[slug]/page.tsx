@@ -15,7 +15,7 @@ function GoogleG({ size = 20 }: { size?: number }) {
 }
 
 // ── 3D Gold Star ──────────────────────────────────────────────────────
-function GoldStar({ index, lit, onClick, onHover, onLeave }: { index: number; lit: boolean; onClick: () => void; onHover: (i: number) => void; onLeave: () => void }) {
+function GoldStar({ index, lit, onClick, onHover, onLeave }: { index: number; lit: boolean; onClick: () => void; onHover: () => void; onLeave: () => void }) {
   return (
     <button
       onClick={onClick} onMouseEnter={onHover} onMouseLeave={onLeave}

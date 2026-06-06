@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { QrCode, TrendingUp, Shield, Star, ChevronRight, Check, Users, BarChart3, Zap, Bot, ArrowRight, Sparkles } from 'lucide-react';
+import { QrCode, TrendingUp, Shield, Star, ChevronRight, Check, Users, BarChart3, Zap, Bot, ArrowRight, Sparkles, Download, X } from 'lucide-react';
 import Link from 'next/link';
 import { cn, formatNumber } from '@/lib/utils';
 import { formatPrice } from '@/lib/currency';
@@ -132,13 +132,49 @@ function HeroSection() {
   const [gmbUrl, setGmbUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
+  const [qrSvg, setQrSvg] = useState<string | null>(null);
+  const [qrPng, setQrPng] = useState<string | null>(null);
+  const [qrError, setQrError] = useState<string | null>(null);
 
   async function handleGenerate() {
     if (!gmbUrl) return;
     setIsGenerating(true);
-    await new Promise((r) => setTimeout(r, 1800));
-    setIsGenerating(false);
-    setGenerated(true);
+    setQrError(null);
+    setQrSvg(null);
+    setQrPng(null);
+    setGenerated(false);
+    try {
+      const res = await fetch('/api/generate-qr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: gmbUrl, label: 'Landing Page QR' }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error ?? 'QR generation failed');
+      setQrSvg(data.svg);
+      setQrPng(data.png_data_url);
+      setGenerated(true);
+    } catch (err: any) {
+      setQrError(err.message ?? 'Something went wrong. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
+  function handleDownload() {
+    if (!qrPng) return;
+    const a = document.createElement('a');
+    a.href = qrPng;
+    a.download = 'gmbhub-review-qr.png';
+    a.click();
+  }
+
+  function handleReset() {
+    setGenerated(false);
+    setQrSvg(null);
+    setQrPng(null);
+    setQrError(null);
+    setGmbUrl('');
   }
 
   return (
@@ -197,7 +233,7 @@ function HeroSection() {
                   <input
                     type="url"
                     value={gmbUrl}
-                    onChange={(e) => setGmbUrl(e.target.value)}
+                    onChange={(e) => { setGmbUrl(e.target.value); setGenerated(false); setQrSvg(null); setQrPng(null); setQrError(null); }}
                     placeholder="Paste your Google Business Profile / Maps link"
                     className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/25"
                   />
@@ -225,6 +261,66 @@ function HeroSection() {
                   {isGenerating ? 'Generating...' : generated ? 'Generated!' : 'Generate Smart QR'}
                 </motion.button>
               </div>
+
+              {/* QR Result */}
+              <AnimatePresence>
+                {(qrSvg || qrError) && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                    animate={{ opacity: 1, height: 'auto', marginBottom: 16 }}
+                    exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    className="overflow-hidden"
+                  >
+                    {qrError ? (
+                      <div className="flex items-start gap-3 p-4 rounded-xl bg-[#EA4335]/8 border border-[#EA4335]/20">
+                        <X className="w-4 h-4 text-[#EA4335] shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-[#EA4335] text-xs font-semibold mb-0.5">Generation failed</p>
+                          <p className="text-white/50 text-xs">{qrError}</p>
+                        </div>
+                        <button onClick={handleReset} className="text-white/30 hover:text-white/60 transition-colors">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : qrSvg ? (
+                      <div className="flex items-center gap-4 p-4 rounded-xl bg-[#34A853]/8 border border-[#34A853]/20">
+                        {/* QR SVG preview */}
+                        <div
+                          className="w-20 h-20 shrink-0 rounded-lg overflow-hidden bg-[#0A0A0C] p-1.5"
+                          style={{ border: '1px solid rgba(52,168,83,0.3)' }}
+                          dangerouslySetInnerHTML={{ __html: qrSvg }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <Check className="w-3.5 h-3.5 text-[#34A853] shrink-0" />
+                            <p className="text-white text-sm font-bold">QR Code Ready!</p>
+                          </div>
+                          <p className="text-white/35 text-xs mb-3 truncate">{gmbUrl}</p>
+                          <div className="flex items-center gap-3">
+                            <motion.button
+                              onClick={handleDownload}
+                              whileHover={{ scale: 1.03 }}
+                              whileTap={{ scale: 0.97 }}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-black"
+                              style={{ background: '#34A853', boxShadow: '0 0 12px rgba(52,168,83,0.4)' }}
+                            >
+                              <Download className="w-3 h-3" />
+                              Download PNG
+                            </motion.button>
+                            <button
+                              onClick={handleReset}
+                              className="text-xs text-white/30 hover:text-white/60 transition-colors"
+                            >
+                              Generate another →
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <div className="flex flex-wrap items-center gap-5 text-xs text-white/35">
                 <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-[#34A853]" /> No credit card required</span>

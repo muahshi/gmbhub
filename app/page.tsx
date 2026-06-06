@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QrCode, TrendingUp, Shield, Star, ChevronRight, Check, Users, BarChart3, Zap, Bot } from 'lucide-react';
 import Link from 'next/link';
-import { cn, PRICING_PLANS, formatNumber } from '@/lib/utils';
+import { cn, formatNumber } from '@/lib/utils';
 import { formatPrice } from '@/lib/currency';
 import type { CurrencyConfig } from '@/types';
-import { CURRENCY_MAP } from '@/types';
+import { CURRENCY_MAP, PRICING_PLANS } from '@/types';
 import { GMBhubLogo, GMBhubBrand } from '@/components/ui/gmbhub-logo';
 import { GooglePartnerSeal, GoogleOAuthButton, GoogleColorStripe, GoogleGLogo, GoogleColorDots } from '@/components/ui/google-brand';
 

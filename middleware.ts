@@ -1,53 +1,42 @@
 // middleware.ts
 import { NextResponse, type NextRequest } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
 
-export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+// NOTE: We intentionally keep middleware lightweight (no Supabase here)
+// because @supabase/supabase-js uses Node.js APIs not available in Edge.
+// Auth session validation is done in individual route/layout server components.
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
 
-  const { data: { user } } = await supabase.auth.getUser();
+  // Read session token cookie (set by Supabase client)
+  const hasSession =
+    request.cookies.has('sb-access-token') ||
+    request.cookies.has('sb-refresh-token') ||
+    // @supabase/ssr sets a project-specific cookie
+    [...request.cookies.getAll()].some(({ name }) =>
+      name.startsWith('sb-') && name.endsWith('-auth-token')
+    );
 
   // Protect dashboard routes
-  if (request.nextUrl.pathname.startsWith('/dashboard')) {
-    if (!user) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/login';
-      url.searchParams.set('redirectTo', request.nextUrl.pathname);
-      return NextResponse.redirect(url);
-    }
+  if (pathname.startsWith('/dashboard') && !hasSession) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    url.searchParams.set('redirectTo', pathname);
+    return NextResponse.redirect(url);
   }
 
   // Redirect logged-in users away from auth pages
-  if (['/login', '/signup'].includes(request.nextUrl.pathname) && user) {
+  if (hasSession && (pathname === '/login' || pathname === '/signup')) {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
     return NextResponse.redirect(url);
   }
 
-  return supabaseResponse;
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|public|api).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api|public).*)',
   ],
 };

@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Check, ChevronRight, Lock, Heart, Copy, Send, Zap } from 'lucide-react';
+import { Shield, Check, ChevronRight, Lock, Heart } from 'lucide-react';
 import { cn, REVIEW_SUGGESTIONS, NEGATIVE_TAGS } from '@/lib/utils';
 import { GoogleGLogo, GooglePartnerSeal } from '@/components/ui/google-brand';
-import { GMBhubLogo } from '@/components/ui/gmbhub-logo';
 
 // ── Types ─────────────────────────────────────────────────────────────
 type FunnelPhase = 'rating' | 'positive' | 'negative' | 'submitted';

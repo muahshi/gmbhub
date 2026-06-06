@@ -97,7 +97,7 @@ function Stars({ rating }: { rating: number }) {
           />
         </svg>
       ))}
-      <span style={{ fontSize: 12, fontWeight: 700, marginLeft: 4, color: i => i <= rating ? "#fff" : "rgba(255,255,255,0.4)" }}>
+      <span style={{ fontSize: 12, fontWeight: 700, marginLeft: 4, color: "#fff" }}>
         {rating.toFixed(1)}
       </span>
     </div>
@@ -147,7 +147,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
       padding: "12px 16px", fontSize: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.6)"
     }}>
       <div style={{ fontWeight: 700, color: "rgba(255,255,255,0.7)", marginBottom: 8 }}>{label}</div>
-      {payload.map(p => (
+      {payload.map((p: any) => (
         <div key={p.dataKey} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: p.color, boxShadow: `0 0 6px ${p.color}` }}/>
           <span style={{ color: "rgba(255,255,255,0.6)" }}>{p.name}:</span>
@@ -401,7 +401,7 @@ export default function Dashboard() {
                 <LineChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false}/>
                   <XAxis dataKey="date" tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false}/>
-                  <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}K` : v}/>
+                  <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => v >= 1000 ? `${(v/1000).toFixed(0)}K` : String(v)}/>
                   <Tooltip content={<CustomTooltip/>}/>
                   <Line type="monotone" dataKey="scans" name="Total Scans" stroke="#4285F4" strokeWidth={2.5} dot={{ fill: "#4285F4", r: 4, strokeWidth: 0 }} activeDot={{ r: 6, fill: "#4285F4", boxShadow: "0 0 12px #4285F4" }}
                     style={{ filter: "drop-shadow(0px 4px 10px rgba(66,133,244,0.7))" }}/>

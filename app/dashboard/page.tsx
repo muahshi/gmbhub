@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 // ── Mock Data ─────────────────────────────────────────────────────────
@@ -37,7 +37,7 @@ const navItems = [
 ];
 
 // ── Google G Logo ─────────────────────────────────────────────────────
-function GoogleG({ size = 14 }) {
+function GoogleG({ size = 14 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24">
       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -49,7 +49,7 @@ function GoogleG({ size = 14 }) {
 }
 
 // ── Animated Sparkline ────────────────────────────────────────────────
-function Sparkline({ color, pts }) {
+function Sparkline({ color, pts }: { color: string; pts?: number[] }) {
   const [progress, setProgress] = useState(0);
   useEffect(() => {
     let raf;
@@ -85,7 +85,7 @@ function Sparkline({ color, pts }) {
 }
 
 // ── Stars ─────────────────────────────────────────────────────────────
-function Stars({ rating }) {
+function Stars({ rating }: { rating: number }) {
   return (
     <div style={{ display: "flex", gap: 2, alignItems: "center" }}>
       {[1,2,3,4,5].map(i => (
@@ -105,7 +105,10 @@ function Stars({ rating }) {
 }
 
 // ── Metric Card ───────────────────────────────────────────────────────
-function MetricCard({ icon, iconBg, title, value, change, sparkColor, sparkPts }) {
+function MetricCard({ icon, iconBg, title, value, change, sparkColor, sparkPts }: {
+  icon: React.ReactNode; iconBg: string; title: string; value: string | number;
+  change: string; sparkColor: string; sparkPts?: number[];
+}) {
   return (
     <div style={{
       flex: 1, padding: "18px 20px", borderRadius: 16,
@@ -136,7 +139,7 @@ function MetricCard({ icon, iconBg, title, value, change, sparkColor, sparkPts }
 }
 
 // ── Custom Tooltip ────────────────────────────────────────────────────
-function CustomTooltip({ active, payload, label }) {
+function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: any[]; label?: string }) {
   if (!active || !payload || !payload.length) return null;
   return (
     <div style={{

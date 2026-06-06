@@ -6,13 +6,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
     ],
   },
-  // qrcode is a server-only package
-  serverExternalPackages: ['qrcode'],
-  typescript: {
-    ignoreBuildErrors: false,
-  },
-  eslint: {
-    ignoreDuringBuilds: false,
+  experimental: {
+    serverComponentsExternalPackages: ['qrcode'],
   },
 };
 

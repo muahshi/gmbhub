@@ -1,629 +1,567 @@
-'use client';
+"use client";
+import { useState, useEffect } from "react";
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, ArrowRight, MessageSquare, Heart } from 'lucide-react';
-import { GoogleGLogo } from '@/components/ui/google-brand';
-
-// ─────────────────────────────────────────────────────────────────────
-//  Types
-// ─────────────────────────────────────────────────────────────────────
-interface Business {
-  name: string;
-  google_review_url: string;
-  logo_emoji?: string;
+// ── Google G Logo ─────────────────────────────────────────────────────
+function GoogleG({ size = 20 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+    </svg>
+  );
 }
 
-// ─────────────────────────────────────────────────────────────────────
-//  3D Gold Star Component
-// ─────────────────────────────────────────────────────────────────────
-function GoldStar({ index, selected, hovered, onHover, onLeave, onClick }: {
-  index: number;
-  selected: boolean;
-  hovered: boolean;
-  onHover: () => void;
-  onLeave: () => void;
-  onClick: () => void;
-}) {
-  const lit = hovered || selected;
-
+// ── 3D Gold Star ──────────────────────────────────────────────────────
+function GoldStar({ index, lit, onClick, onHover, onLeave }) {
   return (
-    <motion.button
-      onMouseEnter={onHover}
-      onMouseLeave={onLeave}
-      onClick={onClick}
-      whileTap={{ scale: 0.88 }}
-      animate={lit ? { scale: 1.12, y: -3 } : { scale: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 380, damping: 18 }}
-      className="relative focus:outline-none"
-      aria-label={`Rate ${index} star${index !== 1 ? 's' : ''}`}
+    <button
+      onClick={onClick} onMouseEnter={onHover} onMouseLeave={onLeave}
+      style={{
+        background: "none", border: "none", cursor: "pointer", padding: 0,
+        transform: lit ? "scale(1.18) translateY(-4px)" : "scale(1)",
+        transition: "transform 0.2s cubic-bezier(0.34,1.56,0.64,1)",
+        position: "relative"
+      }}
+      aria-label={`Rate ${index} stars`}
     >
-      <svg
-        width="52"
-        height="52"
-        viewBox="0 0 52 52"
-        fill="none"
-        className="relative z-10"
-      >
+      <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
         <defs>
-          {/* 3D gradient fill */}
-          <radialGradient id={`star3d-${index}`} cx="42%" cy="22%" r="72%">
-            <stop offset="0%" stopColor="#FFF0A0" />
-            <stop offset="28%" stopColor="#FFD93D" />
-            <stop offset="62%" stopColor="#FBBC05" />
-            <stop offset="100%" stopColor="#C87000" />
+          <radialGradient id={`s3d-${index}`} cx="42%" cy="22%" r="72%">
+            <stop offset="0%" stopColor="#FFF0A0"/>
+            <stop offset="28%" stopColor="#FFD93D"/>
+            <stop offset="62%" stopColor="#FBBC05"/>
+            <stop offset="100%" stopColor="#C87000"/>
           </radialGradient>
-          {/* Shadow gradient */}
-          <radialGradient id={`starShadow-${index}`} cx="50%" cy="85%" r="65%">
-            <stop offset="0%" stopColor="#7A4400" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#7A4400" stopOpacity="0" />
-          </radialGradient>
-          {/* Rim light */}
-          <linearGradient id={`starRim-${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="rgba(255,255,200,0.6)" />
-            <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+          <linearGradient id={`srim-${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="rgba(255,255,200,0.6)"/>
+            <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
           </linearGradient>
         </defs>
-
-        {/* Bottom glow shadow */}
         {lit && (
-          <ellipse cx="26" cy="48" rx="16" ry="3"
-            fill={`url(#starShadow-${index})`}
-            style={{ filter: 'blur(3px)' }}
-          />
+          <ellipse cx="26" cy="50" rx="16" ry="3" fill="rgba(251,188,5,0.35)"
+            style={{ filter: "blur(4px)" }}/>
         )}
-
-        {/* Main star shape */}
         <polygon
           points="26,4 31.4,18.5 47.5,18.5 34.8,27.6 39.5,42.5 26,33.5 12.5,42.5 17.2,27.6 4.5,18.5 20.6,18.5"
-          fill={lit ? `url(#star3d-${index})` : 'rgba(255,255,255,0.12)'}
+          fill={lit ? `url(#s3d-${index})` : "rgba(255,255,255,0.1)"}
           style={{
             filter: lit
-              ? `drop-shadow(0 0 10px rgba(251,188,5,0.9)) drop-shadow(0 0 24px rgba(251,188,5,0.5)) drop-shadow(0 3px 6px rgba(0,0,0,0.5))`
-              : 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))',
-            transition: 'filter 0.2s, fill 0.15s',
+              ? "drop-shadow(0 0 12px rgba(251,188,5,1)) drop-shadow(0 0 28px rgba(251,188,5,0.6)) drop-shadow(0 4px 8px rgba(0,0,0,0.5))"
+              : "drop-shadow(0 2px 4px rgba(0,0,0,0.4))",
+            transition: "filter 0.2s, fill 0.15s"
           }}
         />
-
-        {/* Rim light overlay when lit */}
         {lit && (
-          <polygon
-            points="26,4 31.4,18.5 47.5,18.5 34.8,27.6 39.5,42.5 26,33.5 12.5,42.5 17.2,27.6 4.5,18.5 20.6,18.5"
-            fill={`url(#starRim-${index})`}
-            opacity={0.45}
-          />
-        )}
-
-        {/* Sparkle glint when selected */}
-        {selected && (
           <>
-            <circle cx="18" cy="12" r="1.5" fill="rgba(255,255,220,0.9)" />
-            <circle cx="36" cy="10" r="1" fill="rgba(255,255,200,0.7)" />
+            <polygon
+              points="26,4 31.4,18.5 47.5,18.5 34.8,27.6 39.5,42.5 26,33.5 12.5,42.5 17.2,27.6 4.5,18.5 20.6,18.5"
+              fill={`url(#srim-${index})`} opacity={0.5}
+            />
+            <circle cx="18" cy="12" r="1.8" fill="rgba(255,255,220,0.95)"/>
+            <circle cx="36" cy="10" r="1.2" fill="rgba(255,255,200,0.75)"/>
           </>
         )}
       </svg>
-
-      {/* Floor glow */}
       {lit && (
-        <div
-          className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-10 h-2 rounded-full"
-          style={{ background: 'rgba(251,188,5,0.5)', filter: 'blur(4px)' }}
-        />
+        <div style={{
+          position: "absolute", bottom: -4, left: "50%", transform: "translateX(-50%)",
+          width: 36, height: 8, borderRadius: "50%",
+          background: "rgba(251,188,5,0.55)", filter: "blur(5px)"
+        }}/>
       )}
-    </motion.button>
+    </button>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────
-//  Mobile Review Funnel Screen
-// ─────────────────────────────────────────────────────────────────────
-function ReviewScreen({ business, onGoogleClick, onIssueClick }: {
-  business: Business;
-  onGoogleClick: () => void;
-  onIssueClick: () => void;
-}) {
-  const [hoveredStar, setHoveredStar] = useState(0);
-  const [selectedStar, setSelectedStar] = useState(0);
+// ── Positive Flow — Review Cards ──────────────────────────────────────
+const reviewCards = [
+  { id: 1, text: "Absolutely loved the atmosphere and the coffee was perfect. The staff was so friendly and made us feel right at home!" },
+  { id: 2, text: "Best café experience I've had in a long time. The espresso was rich and the ambiance was just right. Highly recommend!" },
+  { id: 3, text: "Brewed Bliss is our go-to spot now. Amazing service, delicious pastries, and wonderful coffee. 5 stars every time!" },
+];
 
-  const handleStarClick = (n: number) => {
-    setSelectedStar(n);
-    if (n >= 4) {
-      setTimeout(onGoogleClick, 600);
-    } else {
-      setTimeout(onIssueClick, 600);
-    }
+function PositiveFlow({ onBack }) {
+  const [copied, setCopied] = useState(null);
+  const [selectedCard, setSelectedCard] = useState(null);
+
+  const handleCopy = (card) => {
+    setSelectedCard(card.id);
+    navigator.clipboard.writeText(card.text).catch(() => {});
+    setCopied(card.id);
+    setTimeout(() => setCopied(null), 2000);
   };
 
   return (
-    <div className="flex flex-col items-center px-7 py-8 h-full relative">
-      {/* Cafe background blurs */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[inherit]">
-        <div className="absolute top-0 left-0 right-0 h-64"
-          style={{ background: 'linear-gradient(180deg, rgba(40,20,0,0.8) 0%, transparent 100%)' }} />
-        <div className="absolute bottom-0 left-0 right-0 h-48"
-          style={{ background: 'linear-gradient(0deg, rgba(0,0,0,0.9) 0%, transparent 100%)' }} />
-        {/* Warm lamp glow */}
-        <div className="absolute top-16 right-8 w-28 h-28 rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(255,160,50,0.2) 0%, transparent 70%)', filter: 'blur(20px)' }} />
-        <div className="absolute top-32 left-4 w-20 h-20 rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(255,140,30,0.15) 0%, transparent 70%)', filter: 'blur(15px)' }} />
+    <div style={{ padding: "28px 20px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <button onClick={onBack} style={{
+        alignSelf: "flex-start", background: "none", border: "none", color: "rgba(255,255,255,0.4)",
+        fontSize: 12, cursor: "pointer", marginBottom: 20, display: "flex", alignItems: "center", gap: 4
+      }}>← Back</button>
+
+      {/* Header */}
+      <div style={{ textAlign: "center", marginBottom: 24 }}>
+        <div style={{
+          width: 52, height: 52, borderRadius: 16, margin: "0 auto 12px",
+          background: "rgba(52,168,83,0.15)", border: "1px solid rgba(52,168,83,0.3)",
+          display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24,
+          boxShadow: "0 0 24px rgba(52,168,83,0.2)"
+        }}>🎉</div>
+        <h3 style={{ fontSize: 20, fontWeight: 900, marginBottom: 6, fontFamily: "'Playfair Display', Georgia, serif" }}>
+          You loved it!
+        </h3>
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
+          Choose a review or write your own,<br/>then post it on Google.
+        </p>
       </div>
 
-      {/* Business logo */}
-      <motion.div
-        initial={{ scale: 0.7, opacity: 0, y: -10 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        transition={{ delay: 0.15, type: 'spring', stiffness: 180, damping: 16 }}
-        className="relative mb-4 z-10"
-      >
-        <div
-          className="w-16 h-16 flex items-center justify-center text-3xl"
-          style={{
-            background: 'linear-gradient(145deg, rgba(251,188,5,0.15) 0%, rgba(0,0,0,0.4) 100%)',
-            border: '1.5px solid rgba(251,188,5,0.35)',
-            borderRadius: '20px',
-            boxShadow: '0 0 24px rgba(251,188,5,0.25), 0 8px 24px rgba(0,0,0,0.6)',
-          }}
-        >
-          ☕
-        </div>
-        {/* Golden rim glow */}
-        <div
-          className="absolute inset-0 rounded-[20px] pointer-events-none"
-          style={{ boxShadow: 'inset 0 1px 0 rgba(255,220,100,0.3)' }}
-        />
-      </motion.div>
-
-      {/* Business name — Playfair Display */}
-      <motion.h2
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.22 }}
-        className="text-xl font-bold text-center mb-1 z-10"
-        style={{
-          fontFamily: "'Playfair Display', 'Cormorant Garamond', Georgia, serif",
-          color: '#F5E6C0',
-          letterSpacing: '0.01em',
-          textShadow: '0 2px 12px rgba(0,0,0,0.8)',
-        }}
-      >
-        {business.name}
-      </motion.h2>
-
-      {/* Decorative divider */}
-      <motion.div
-        initial={{ opacity: 0, scaleX: 0 }}
-        animate={{ opacity: 1, scaleX: 1 }}
-        transition={{ delay: 0.28 }}
-        className="flex items-center gap-2 mb-4 z-10"
-      >
-        <div className="w-12 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(251,188,5,0.4))' }} />
-        <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'rgba(251,188,5,0.5)' }} />
-        <div className="w-12 h-px" style={{ background: 'linear-gradient(90deg, rgba(251,188,5,0.4), transparent)' }} />
-      </motion.div>
-
-      {/* Question — Playfair Display */}
-      <motion.h3
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="text-2xl font-bold text-center mb-3 z-10 leading-tight"
-        style={{
-          fontFamily: "'Playfair Display', 'Cormorant Garamond', Georgia, serif",
-          color: '#FFFFFF',
-          textShadow: '0 2px 20px rgba(0,0,0,0.9)',
-        }}
-      >
-        How was your<br />experience today?
-      </motion.h3>
-
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.36 }}
-        className="text-white/45 text-xs text-center mb-7 z-10 leading-relaxed"
-        style={{ fontFamily: 'system-ui, sans-serif' }}
-      >
-        Your feedback helps us grow and<br />serve you better.
-      </motion.p>
-
-      {/* 3D Stars */}
-      <motion.div
-        className="flex items-center gap-1.5 mb-8 z-10"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.42, type: 'spring', stiffness: 160, damping: 18 }}
-      >
-        {[1, 2, 3, 4, 5].map((n) => (
-          <GoldStar
-            key={n}
-            index={n}
-            selected={n <= selectedStar}
-            hovered={n <= hoveredStar}
-            onHover={() => setHoveredStar(n)}
-            onLeave={() => setHoveredStar(0)}
-            onClick={() => handleStarClick(n)}
-          />
-        ))}
-      </motion.div>
-
-      {/* Prompt card */}
-      <motion.div
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="w-full mb-3 z-10"
-        style={{
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '16px',
-          padding: '14px 16px',
-        }}
-      >
-        <div className="flex items-start gap-3">
-          <div
-            className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center"
+      {/* Review cards */}
+      <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+        {reviewCards.map(card => (
+          <div key={card.id}
+            onClick={() => handleCopy(card)}
             style={{
-              background: 'rgba(251,188,5,0.1)',
-              border: '1px solid rgba(251,188,5,0.2)',
+              padding: "14px 16px", borderRadius: 14, cursor: "pointer", transition: "all 0.2s",
+              background: selectedCard === card.id ? "rgba(52,168,83,0.12)" : "rgba(255,255,255,0.04)",
+              border: selectedCard === card.id ? "1px solid rgba(52,168,83,0.4)" : "1px solid rgba(255,255,255,0.08)",
+              boxShadow: selectedCard === card.id ? "0 0 20px rgba(52,168,83,0.15)" : "none"
             }}
           >
-            <Heart className="w-4 h-4" style={{ color: '#FBBC05' }} />
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", lineHeight: 1.65, marginBottom: 8 }}>"{card.text}"</p>
+            <div style={{
+              display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 700,
+              color: copied === card.id ? "#34A853" : "rgba(255,255,255,0.4)"
+            }}>
+              {copied === card.id ? (
+                <>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34A853" strokeWidth="3"><path d="M5 13l4 4L19 7"/></svg>
+                  Copied to Clipboard!
+                </>
+              ) : (
+                <>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                  </svg>
+                  Tap to copy & use this review
+                </>
+              )}
+            </div>
           </div>
-          <div>
-            <p className="text-white text-xs font-semibold mb-0.5">Love our coffee and service?</p>
-            <p className="text-white/45 text-xs leading-relaxed">
-              Leave a{' '}
-              <span className="font-bold" style={{ color: '#FBBC05' }}>5-star review</span>
-              {' '}and help others discover us.
-            </p>
-          </div>
-        </div>
-      </motion.div>
+        ))}
+      </div>
 
-      {/* Google Review CTA */}
-      <motion.button
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.56 }}
-        onClick={onGoogleClick}
-        whileTap={{ scale: 0.97 }}
-        whileHover={{ scale: 1.02 }}
-        className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold text-sm text-white mb-3 z-10 relative overflow-hidden"
-        style={{
-          background: '#4285F4',
-          boxShadow: '0 0 32px rgba(66,133,244,0.55), 0 0 64px rgba(66,133,244,0.15), 0 4px 16px rgba(0,0,0,0.5)',
-        }}
-      >
-        <GoogleGLogo size={20} />
-        <span className="flex-1 text-center">Leave a Review on Google</span>
-        <ArrowRight className="w-4 h-4 opacity-80" />
-        {/* Shimmer */}
-        <div className="absolute inset-0" style={{
-          background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%)',
-          backgroundSize: '200% 100%',
-          animation: 'shimmer 2.5s infinite',
-        }} />
-      </motion.button>
-
-      {/* Issue CTA */}
-      <motion.button
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.62 }}
-        onClick={onIssueClick}
-        whileTap={{ scale: 0.97 }}
-        className="w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl text-sm text-white/50 mb-6 z-10 hover:bg-white/[0.06] transition-colors"
-        style={{
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.08)',
-        }}
-      >
-        <MessageSquare className="w-4 h-4 shrink-0 text-white/30" />
-        <span className="flex-1 text-left">I had an issue — Let us make it right</span>
-        <ArrowRight className="w-3.5 h-3.5 opacity-40" />
-      </motion.button>
-
-      {/* Trust seal */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.7 }}
-        className="flex items-center gap-2 text-[10px] text-[#34A853] z-10"
-        style={{ textShadow: '0 0 10px rgba(52,168,83,0.5)' }}
-      >
-        <Shield className="w-3.5 h-3.5" />
-        Verified Secure Google OAuth Node
-        <svg className="w-3 h-3 text-white/20 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 16 16">
-          <rect x="4" y="7" width="8" height="7" rx="1" />
-          <path d="M5 7V5a3 3 0 0 1 6 0v2" />
+      {/* Google CTA */}
+      <a href="#" style={{
+        width: "100%", display: "flex", alignItems: "center", gap: 10,
+        padding: "16px 18px", borderRadius: 18, textDecoration: "none",
+        background: selectedCard ? "#4285F4" : "rgba(66,133,244,0.4)",
+        boxShadow: selectedCard ? "0 0 32px rgba(66,133,244,0.6), 0 4px 16px rgba(0,0,0,0.5)" : "none",
+        color: "#fff", fontWeight: 700, fontSize: 14, transition: "all 0.3s",
+        justifyContent: "center", position: "relative", overflow: "hidden"
+      }}>
+        <GoogleG size={20}/>
+        Leave a Review on Google
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginLeft: 4 }}>
+          <path d="M5 12h14M12 5l7 7-7 7"/>
         </svg>
-      </motion.div>
+      </a>
+
+      <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 12, textAlign: "center" }}>
+        Copy a review above, then paste it in Google when prompted
+      </p>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────
-//  Issue / Private Feedback Screen
-// ─────────────────────────────────────────────────────────────────────
-function IssueScreen({ business, onBack }: { business: Business; onBack: () => void }) {
-  const [msg, setMsg] = useState('');
+// ── Negative Flow — Private Feedback ─────────────────────────────────
+const issueTags = ["Taste Issue", "Service Delay", "Hygiene", "Pricing", "Ambience", "Wait Time", "Cleanliness", "Staff"];
+
+function NegativeFlow({ onBack }) {
+  const [selected, setSelected] = useState([]);
+  const [msg, setMsg] = useState("");
   const [sent, setSent] = useState(false);
 
+  const toggleTag = tag => setSelected(p => p.includes(tag) ? p.filter(t => t !== tag) : [...p, tag]);
+
   return (
-    <div className="flex flex-col h-full px-7 py-8 items-center relative">
-      <button onClick={onBack} className="self-start text-white/30 text-xs flex items-center gap-1 mb-6 hover:text-white transition-colors">
-        ← Back
-      </button>
-
-      <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
-        style={{ background: 'rgba(234,67,53,0.1)', border: '1px solid rgba(234,67,53,0.25)' }}>
-        <MessageSquare className="w-5 h-5 text-[#EA4335]" />
-      </div>
-
-      <h3 className="text-xl font-bold text-center mb-2"
-        style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
-        Let us make it right
-      </h3>
-      <p className="text-white/40 text-xs text-center mb-6 leading-relaxed">
-        Your feedback is private and will<br />go directly to the team.
-      </p>
+    <div style={{ padding: "28px 20px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <button onClick={onBack} style={{
+        alignSelf: "flex-start", background: "none", border: "none", color: "rgba(255,255,255,0.4)",
+        fontSize: 12, cursor: "pointer", marginBottom: 20
+      }}>← Back</button>
 
       {!sent ? (
         <>
+          <div style={{
+            width: 52, height: 52, borderRadius: 16, margin: "0 auto 14px",
+            background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.3)",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24,
+            boxShadow: "0 0 24px rgba(139,92,246,0.2)"
+          }}>💬</div>
+
+          <h3 style={{ fontSize: 19, fontWeight: 900, marginBottom: 6, textAlign: "center", fontFamily: "'Playfair Display', Georgia, serif" }}>
+            Let us make it right
+          </h3>
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", textAlign: "center", marginBottom: 20, lineHeight: 1.6 }}>
+            Your feedback goes directly to our team.<br/>We'll reach out to resolve this personally.
+          </p>
+
+          {/* Issue tags */}
+          <div style={{ width: "100%", marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", marginBottom: 10 }}>What went wrong? (select all that apply)</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {issueTags.map(tag => (
+                <button key={tag} onClick={() => toggleTag(tag)}
+                  style={{
+                    padding: "6px 14px", borderRadius: 999, fontSize: 12, cursor: "pointer", transition: "all 0.2s", fontWeight: 600,
+                    background: selected.includes(tag) ? "rgba(139,92,246,0.25)" : "rgba(255,255,255,0.05)",
+                    border: selected.includes(tag) ? "1px solid rgba(139,92,246,0.5)" : "1px solid rgba(255,255,255,0.1)",
+                    color: selected.includes(tag) ? "#A78BFA" : "rgba(255,255,255,0.55)",
+                    boxShadow: selected.includes(tag) ? "0 0 12px rgba(139,92,246,0.25)" : "none"
+                  }}>
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Message */}
           <textarea
-            value={msg}
-            onChange={(e) => setMsg(e.target.value)}
-            placeholder="Tell us what happened…"
-            rows={5}
-            className="w-full text-sm text-white placeholder:text-white/25 outline-none resize-none rounded-xl p-4 mb-4"
+            value={msg} onChange={e => setMsg(e.target.value)}
+            placeholder="Tell us what happened in detail…"
+            rows={4}
             style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.09)',
+              width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)",
+              borderRadius: 14, padding: "14px 16px", color: "#fff", fontSize: 13, outline: "none",
+              resize: "none", marginBottom: 14, fontFamily: "inherit", lineHeight: 1.6
             }}
           />
-          <button
-            onClick={() => msg && setSent(true)}
-            disabled={!msg}
-            className="w-full py-3.5 rounded-2xl font-bold text-sm text-white transition-all disabled:opacity-40"
-            style={{
-              background: msg ? '#EA4335' : 'rgba(234,67,53,0.4)',
-              boxShadow: msg ? '0 0 24px rgba(234,67,53,0.4)' : 'none',
-            }}
-          >
-            Send Private Feedback
-          </button>
+
+          {/* WhatsApp + Send */}
+          <div style={{ width: "100%", display: "flex", gap: 10, marginBottom: 16 }}>
+            <a href="https://wa.me/919999999999" style={{
+              flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              padding: "13px", borderRadius: 14, textDecoration: "none",
+              background: "rgba(37,211,102,0.12)", border: "1px solid rgba(37,211,102,0.3)",
+              color: "#25D366", fontWeight: 700, fontSize: 13
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366">
+                <path d="M20.52 3.449A11.92 11.92 0 0012.004 0C5.454 0 .113 5.341.11 11.892a11.86 11.86 0 001.587 5.948L0 24l6.335-1.652a11.95 11.95 0 005.669 1.44h.005c6.549 0 11.89-5.341 11.893-11.892a11.82 11.82 0 00-3.381-8.447z"/>
+              </svg>
+              WhatsApp Us
+            </a>
+            <button onClick={() => (selected.length > 0 || msg) && setSent(true)}
+              disabled={selected.length === 0 && !msg}
+              style={{
+                flex: 2, padding: "13px", borderRadius: 14, border: "none", cursor: "pointer",
+                background: (selected.length > 0 || msg) ? "rgba(139,92,246,0.9)" : "rgba(139,92,246,0.25)",
+                color: "#fff", fontWeight: 700, fontSize: 13, transition: "all 0.2s",
+                boxShadow: (selected.length > 0 || msg) ? "0 0 24px rgba(139,92,246,0.4)" : "none"
+              }}>
+              Send Private Feedback
+            </button>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: "#34A853" }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            Your feedback is completely private and secure.
+          </div>
         </>
       ) : (
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="text-center"
-        >
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-            style={{ background: 'rgba(52,168,83,0.15)', border: '1px solid rgba(52,168,83,0.3)' }}>
-            <span className="text-3xl">✓</span>
-          </div>
-          <p className="font-bold mb-1">Thank you for your feedback</p>
-          <p className="text-white/40 text-xs">We'll be in touch shortly to make things right.</p>
-        </motion.div>
+        <div style={{ textAlign: "center", paddingTop: 40 }}>
+          <div style={{
+            width: 72, height: 72, borderRadius: "50%", margin: "0 auto 20px",
+            background: "rgba(52,168,83,0.15)", border: "1px solid rgba(52,168,83,0.3)",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32,
+            boxShadow: "0 0 32px rgba(52,168,83,0.25)"
+          }}>✓</div>
+          <h3 style={{ fontSize: 20, fontWeight: 900, marginBottom: 8, fontFamily: "'Playfair Display', Georgia, serif" }}>Thank you!</h3>
+          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>
+            We've received your feedback.<br/>Our team will reach out shortly to make things right.
+          </p>
+          <button onClick={onBack} style={{
+            marginTop: 24, padding: "12px 24px", borderRadius: 12, border: "none", cursor: "pointer",
+            background: "#0F0F14", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 13
+          }}>← Back to Review</button>
+        </div>
       )}
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────
-//  Phone Chassis Wrapper (desktop view)
-// ─────────────────────────────────────────────────────────────────────
-function PhoneChassis({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="relative w-[375px] flex-shrink-0">
-      {/* Multi-layer ambient glow behind phone */}
-      <div className="absolute inset-0 scale-110 translate-y-8 pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse at 50% 60%, rgba(251,188,5,0.25) 0%, rgba(66,133,244,0.12) 35%, transparent 70%)',
-          filter: 'blur(55px)',
-        }} />
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[240px] h-[30px]"
-        style={{
-          background: 'rgba(52,168,83,0.35)',
-          filter: 'blur(25px)',
-          borderRadius: '50%',
-        }} />
+// ── Main Review Screen ────────────────────────────────────────────────
+function ReviewScreen({ onPositive, onNegative }) {
+  const [hovered, setHovered] = useState(0);
+  const [selected, setSelected] = useState(0);
 
-      {/* Phone body */}
-      <div
-        className="relative z-10 overflow-hidden flex flex-col"
+  const handleStar = n => {
+    setSelected(n);
+    if (n >= 4) setTimeout(onPositive, 500);
+    else setTimeout(onNegative, 500);
+  };
+
+  return (
+    <div style={{ padding: "28px 20px", display: "flex", flexDirection: "column", alignItems: "center", minHeight: 680, position: "relative" }}>
+      {/* Warm cafe ambient */}
+      <div style={{
+        position: "absolute", inset: 0, pointerEvents: "none",
+        background: "radial-gradient(ellipse at 70% 20%, rgba(120,60,10,0.7) 0%, transparent 55%)"
+      }}/>
+      <div style={{
+        position: "absolute", top: 80, right: 20, width: 80, height: 80, borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(255,160,50,0.25) 0%, transparent 70%)", filter: "blur(20px)", pointerEvents: "none"
+      }}/>
+      <div style={{
+        position: "absolute", top: 180, left: 10, width: 60, height: 60, borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(255,140,30,0.18) 0%, transparent 70%)", filter: "blur(16px)", pointerEvents: "none"
+      }}/>
+
+      {/* Business logo */}
+      <div style={{
+        width: 68, height: 68, borderRadius: 22, fontSize: 30, flexShrink: 0, zIndex: 2,
+        display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16,
+        background: "linear-gradient(145deg, rgba(251,188,5,0.18) 0%, rgba(0,0,0,0.5) 100%)",
+        border: "1.5px solid rgba(251,188,5,0.38)", boxShadow: "0 0 28px rgba(251,188,5,0.25), 0 8px 24px rgba(0,0,0,0.6)"
+      }}>☕</div>
+
+      {/* Business name */}
+      <h2 style={{
+        fontSize: 22, fontWeight: 700, textAlign: "center", marginBottom: 4, zIndex: 2,
+        fontFamily: "'Playfair Display', 'Cormorant Garamond', Georgia, serif",
+        color: "#F5E6C0", textShadow: "0 2px 16px rgba(0,0,0,0.8)"
+      }}>Brewed Bliss Cafe</h2>
+
+      {/* Decorative divider */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, zIndex: 2 }}>
+        <div style={{ width: 40, height: 1, background: "linear-gradient(90deg, transparent, rgba(251,188,5,0.45))" }}/>
+        <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(251,188,5,0.55)" }}/>
+        <div style={{ width: 40, height: 1, background: "linear-gradient(90deg, rgba(251,188,5,0.45), transparent)" }}/>
+      </div>
+
+      {/* Question */}
+      <h3 style={{
+        fontSize: 26, fontWeight: 700, textAlign: "center", marginBottom: 10, zIndex: 2, lineHeight: 1.3,
+        fontFamily: "'Playfair Display', Georgia, serif", textShadow: "0 2px 20px rgba(0,0,0,0.9)"
+      }}>How was your<br/>experience today?</h3>
+
+      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", textAlign: "center", marginBottom: 28, zIndex: 2, lineHeight: 1.65 }}>
+        Your feedback helps us grow and<br/>serve you better.
+      </p>
+
+      {/* Stars */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 32, zIndex: 2 }}>
+        {[1,2,3,4,5].map(n => (
+          <GoldStar key={n} index={n} lit={n <= (hovered || selected)}
+            onClick={() => handleStar(n)}
+            onHover={() => setHovered(n)} onLeave={() => setHovered(0)}
+          />
+        ))}
+      </div>
+
+      {/* Prompt card */}
+      <div style={{
+        width: "100%", padding: "14px 16px", borderRadius: 16, marginBottom: 14, zIndex: 2,
+        background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
+      }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: "rgba(251,188,5,0.12)", border: "1px solid rgba(251,188,5,0.22)"
+          }}>❤️</div>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 3 }}>Love our coffee and service?</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
+              Leave a <span style={{ color: "#FBBC05", fontWeight: 700 }}>5-star review</span> and help others discover us.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Google CTA */}
+      <button onClick={onPositive}
         style={{
-          borderRadius: '50px',
-          background: '#000',
-          border: '1.5px solid rgba(255,255,255,0.14)',
-          boxShadow: `
-            0 0 0 0.5px rgba(255,255,255,0.06),
-            0 40px 100px rgba(0,0,0,0.95),
-            0 0 80px rgba(251,188,5,0.1),
-            inset 0 1px 0 rgba(255,255,255,0.1),
-            inset 0 -1px 0 rgba(255,255,255,0.04)
-          `,
-        }}
-      >
+          width: "100%", display: "flex", alignItems: "center", gap: 12,
+          padding: "16px 18px", borderRadius: 18, border: "none", cursor: "pointer",
+          background: "#4285F4", color: "#fff", fontWeight: 700, fontSize: 14, marginBottom: 12, zIndex: 2,
+          boxShadow: "0 0 32px rgba(66,133,244,0.6), 0 4px 16px rgba(0,0,0,0.5)",
+          position: "relative", overflow: "hidden"
+        }}>
+        <GoogleG size={20}/>
+        <span style={{ flex: 1, textAlign: "center" }}>Leave a Review on Google</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        {/* Shimmer */}
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%)",
+          backgroundSize: "200%", animation: "shimmer 2.5s ease infinite"
+        }}/>
+      </button>
+
+      {/* Issue CTA */}
+      <button onClick={onNegative}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", gap: 10,
+          padding: "14px 18px", borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)",
+          background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", cursor: "pointer", fontSize: 13, marginBottom: 24, zIndex: 2
+        }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span style={{ flex: 1, textAlign: "left" }}>I had an issue — Let us make it right</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+
+      {/* Trust seal */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#34A853", zIndex: 2, textShadow: "0 0 10px rgba(52,168,83,0.5)" }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        Verified Secure Google OAuth Node
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5">
+          <rect x="3" y="7" width="10" height="8" rx="1.5"/>
+          <path d="M5 7V5a3 3 0 0 1 6 0v2"/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+// ── Phone Chassis ─────────────────────────────────────────────────────
+function PhoneChassis({ children }) {
+  return (
+    <div style={{ position: "relative", width: 390, flexShrink: 0 }}>
+      {/* Glow */}
+      <div style={{
+        position: "absolute", inset: 0, transform: "scale(1.1) translateY(10%)",
+        background: "radial-gradient(ellipse at 50% 60%, rgba(251,188,5,0.3) 0%, rgba(66,133,244,0.15) 40%, transparent 70%)",
+        filter: "blur(60px)", pointerEvents: "none"
+      }}/>
+      <div style={{
+        position: "absolute", bottom: -10, left: "50%", transform: "translateX(-50%)",
+        width: 240, height: 30, borderRadius: "50%",
+        background: "rgba(52,168,83,0.4)", filter: "blur(28px)", pointerEvents: "none"
+      }}/>
+      {/* Body */}
+      <div style={{
+        position: "relative", zIndex: 10, borderRadius: 52,
+        background: "#020204", border: "1.5px solid rgba(255,255,255,0.15)",
+        boxShadow: "0 0 0 0.5px rgba(255,255,255,0.07), 0 50px 120px rgba(0,0,0,0.95), 0 0 80px rgba(251,188,5,0.1), inset 0 1px 0 rgba(255,255,255,0.12)",
+        overflow: "hidden"
+      }}>
         {/* Status bar */}
-        <div
-          className="flex items-center justify-between px-8 pt-4 pb-3 shrink-0"
-          style={{ background: 'rgba(0,0,0,0.95)' }}
-        >
-          <span className="text-[13px] font-bold text-white" style={{ fontFamily: "'SF Pro Display', system-ui" }}>9:41</span>
-          <div className="flex items-center gap-1.5">
-            {/* Signal bars */}
-            <svg width="18" height="12" viewBox="0 0 18 12" fill="white" opacity={0.85}>
-              <rect x="0" y="8" width="3" height="4" rx="0.5" />
-              <rect x="5" y="5" width="3" height="7" rx="0.5" />
-              <rect x="10" y="2" width="3" height="10" rx="0.5" />
-              <rect x="15" y="0" width="3" height="12" rx="0.5" />
+        <div style={{ background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 28px 8px" }}>
+          <span style={{ fontSize: 14, fontWeight: 800, color: "#fff" }}>9:41</span>
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="rgba(255,255,255,0.85)">
+              <rect x="0" y="8" width="3" height="4" rx="0.5"/><rect x="5" y="5" width="3" height="7" rx="0.5"/>
+              <rect x="10" y="2" width="3" height="10" rx="0.5"/><rect x="15" y="0" width="3" height="12" rx="0.5"/>
             </svg>
-            {/* WiFi */}
-            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="white" strokeWidth={1.2} opacity={0.85}>
-              <path d="M1 4C3.8 1.5 7 0 8 0s4.2 1.5 7 4" /><path d="M3 7c1.4-1.5 3-2.3 5-2.3s3.6.8 5 2.3" />
-              <circle cx="8" cy="10.5" r="1.2" fill="white" stroke="none" />
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="1.2">
+              <path d="M1 4C3.8 1.5 7 0 8 0s4.2 1.5 7 4"/><path d="M3 7c1.4-1.5 3-2.3 5-2.3s3.6.8 5 2.3"/>
+              <circle cx="8" cy="10.5" r="1.2" fill="rgba(255,255,255,0.85)" stroke="none"/>
             </svg>
-            {/* Battery */}
-            <svg width="26" height="13" viewBox="0 0 26 13" fill="none" opacity={0.85}>
-              <rect x="0.5" y="0.5" width="22" height="12" rx="3" stroke="white" strokeOpacity={0.5} />
-              <rect x="2" y="2" width="18" height="9" rx="2" fill="white" />
-              <path d="M23.5 4.5v4a2 2 0 0 0 0-4z" fill="white" fillOpacity={0.4} />
+            <svg width="26" height="13" viewBox="0 0 26 13" fill="none">
+              <rect x="0.5" y="0.5" width="22" height="12" rx="3" stroke="rgba(255,255,255,0.5)"/>
+              <rect x="2" y="2" width="18" height="9" rx="2" fill="rgba(255,255,255,0.85)"/>
+              <path d="M23.5 4.5v4a2 2 0 0 0 0-4z" fill="rgba(255,255,255,0.4)"/>
             </svg>
           </div>
         </div>
-
-        {/* Dynamic island notch */}
-        <div className="flex justify-center -mt-1 mb-1 shrink-0">
-          <div className="w-24 h-6 rounded-full" style={{ background: '#000' }} />
+        {/* Dynamic island */}
+        <div style={{ display: "flex", justifyContent: "center", background: "rgba(0,0,0,0.9)", paddingBottom: 4 }}>
+          <div style={{ width: 120, height: 32, borderRadius: 999, background: "#000" }}/>
         </div>
-
-        {/* Screen content with cafe bg */}
-        <div
-          className="relative overflow-hidden flex-1"
-          style={{
-            minHeight: '680px',
-            background: `
-              radial-gradient(ellipse at 70% 25%, rgba(120,60,10,0.8) 0%, transparent 50%),
-              radial-gradient(ellipse at 20% 60%, rgba(80,40,5,0.6) 0%, transparent 50%),
-              linear-gradient(180deg, #1A0E00 0%, #0A0600 40%, #000000 100%)
-            `,
-          }}
-        >
+        {/* Screen */}
+        <div style={{
+          minHeight: 680, overflow: "auto",
+          background: "linear-gradient(180deg, #1A0E00 0%, #0A0600 40%, #000000 100%)"
+        }}>
           {children}
         </div>
-
-        {/* Home indicator */}
-        <div className="flex justify-center py-3 shrink-0" style={{ background: '#000' }}>
-          <div className="w-28 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.3)' }} />
+        {/* Home bar */}
+        <div style={{ display: "flex", justifyContent: "center", padding: "12px 0", background: "#000" }}>
+          <div style={{ width: 130, height: 5, borderRadius: 999, background: "rgba(255,255,255,0.28)" }}/>
         </div>
       </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────
-//  Page
-// ─────────────────────────────────────────────────────────────────────
-export default function ReviewPage({ params }: { params: { slug: string } }) {
-  const [business, setBusiness] = useState<Business | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [screen, setScreen] = useState<'review' | 'issue'>('review');
-
-  useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch(`/api/business/${params.slug}`);
-        if (res.ok) {
-          const data = await res.json();
-          setBusiness(data.business ?? null);
-        }
-      } catch (_) {}
-      finally { setLoading(false); }
-    }
-    load();
-  }, [params.slug]);
-
-  const fallbackBusiness: Business = {
-    name: 'Brewed Bliss Cafe',
-    google_review_url: '#',
-  };
-
-  const biz = business ?? fallbackBusiness;
-
-  function handleGoogleClick() {
-    if (biz.google_review_url && biz.google_review_url !== '#') {
-      window.open(biz.google_review_url, '_blank', 'noopener');
-    }
-  }
-
-  // ── Mobile (narrow viewport) — full screen ──────────────────────────
-  const MobileView = (
-    <div
-      className="min-h-screen flex flex-col funnel-viewport"
-      style={{
-        background: `
-          radial-gradient(ellipse at 70% 25%, rgba(120,60,10,0.8) 0%, transparent 50%),
-          radial-gradient(ellipse at 20% 60%, rgba(80,40,5,0.6) 0%, transparent 50%),
-          linear-gradient(180deg, #1A0E00 0%, #0A0600 40%, #000000 100%)
-        `,
-      }}
-    >
-      <AnimatePresence mode="wait">
-        {screen === 'review' ? (
-          <motion.div key="review" className="flex-1 flex flex-col" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, x: -20 }}>
-            <ReviewScreen business={biz} onGoogleClick={handleGoogleClick} onIssueClick={() => setScreen('issue')} />
-          </motion.div>
-        ) : (
-          <motion.div key="issue" className="flex-1 flex flex-col" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            <IssueScreen business={biz} onBack={() => setScreen('review')} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-
-  // ── Desktop (wide viewport) — phone chassis ──────────────────────────
-  const DesktopView = (
-    <div
-      className="min-h-screen flex items-center justify-center p-12 relative overflow-hidden"
-      style={{ background: '#020204' }}
-    >
-      {/* Ambient orbs */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(66,133,244,0.06) 0%, rgba(251,188,5,0.04) 40%, transparent 70%)', filter: 'blur(100px)' }} />
-      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 70%)', filter: 'blur(80px)' }} />
-      <div className="absolute top-0 left-0 w-[500px] h-[300px] rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse, rgba(251,188,5,0.05) 0%, transparent 70%)', filter: 'blur(60px)' }} />
-
-      {/* Grid overlay */}
-      <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
-
-      <motion.div
-        initial={{ opacity: 0, y: 32, scale: 0.96 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        className="animate-float"
-      >
-        <PhoneChassis>
-          <AnimatePresence mode="wait">
-            {screen === 'review' ? (
-              <motion.div key="review" className="h-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, x: -20 }}>
-                <ReviewScreen business={biz} onGoogleClick={handleGoogleClick} onIssueClick={() => setScreen('issue')} />
-              </motion.div>
-            ) : (
-              <motion.div key="issue" className="h-full" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}>
-                <IssueScreen business={biz} onBack={() => setScreen('review')} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </PhoneChassis>
-      </motion.div>
-    </div>
-  );
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#020204' }}>
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-          className="w-8 h-8 border-2 rounded-full"
-          style={{ borderColor: 'rgba(251,188,5,0.2)', borderTopColor: '#FBBC05' }}
-        />
-      </div>
-    );
-  }
+// ── Main Page ─────────────────────────────────────────────────────────
+export default function ReviewFunnel() {
+  const [screen, setScreen] = useState("review"); // review | positive | negative
 
   return (
-    <>
-      {/* Mobile */}
-      <div className="md:hidden">{MobileView}</div>
-      {/* Desktop */}
-      <div className="hidden md:block">{DesktopView}</div>
-    </>
+    <div style={{
+      background: "#020204", minHeight: "100vh",
+      fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
+      color: "#fff"
+    }}>
+      <style>{`
+        @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+      `}</style>
+
+      {/* Mobile view */}
+      <div style={{ display: "block" }}>
+        <div style={{
+          minHeight: "100vh",
+          background: "linear-gradient(180deg, #1A0E00 0%, #0A0600 40%, #000000 100%)"
+        }}>
+          {screen === "review" && <ReviewScreen onPositive={() => setScreen("positive")} onNegative={() => setScreen("negative")}/>}
+          {screen === "positive" && <PositiveFlow onBack={() => setScreen("review")}/>}
+          {screen === "negative" && <NegativeFlow onBack={() => setScreen("review")}/>}
+        </div>
+      </div>
+
+      {/* Desktop: phone mockup (shown above mobile on large screens via media query) */}
+      <style>{`
+        @media (min-width: 768px) {
+          .mobile-view { display: none !important; }
+          .desktop-view { display: flex !important; }
+        }
+        @media (max-width: 767px) {
+          .desktop-view { display: none !important; }
+        }
+      `}</style>
+
+      {/* Desktop wrapper */}
+      <div className="desktop-view" style={{
+        display: "none", position: "fixed", inset: 0,
+        background: "#020204", alignItems: "center", justifyContent: "center",
+        zIndex: 100
+      }}>
+        {/* Ambient orbs */}
+        <div style={{
+          position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
+          width: 800, height: 800, borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(66,133,244,0.06) 0%, rgba(251,188,5,0.04) 40%, transparent 70%)",
+          filter: "blur(100px)", pointerEvents: "none"
+        }}/>
+        <div style={{
+          position: "absolute", bottom: 0, right: 0, width: 500, height: 500, borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(52,168,83,0.07) 0%, transparent 70%)",
+          filter: "blur(80px)", pointerEvents: "none"
+        }}/>
+        {/* Dot grid */}
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px)",
+          backgroundSize: "32px 32px", opacity: 0.4, pointerEvents: "none"
+        }}/>
+
+        <div style={{ animation: "float 6s ease-in-out infinite" }}>
+          <PhoneChassis>
+            {screen === "review" && <ReviewScreen onPositive={() => setScreen("positive")} onNegative={() => setScreen("negative")}/>}
+            {screen === "positive" && <PositiveFlow onBack={() => setScreen("review")}/>}
+            {screen === "negative" && <NegativeFlow onBack={() => setScreen("review")}/>}
+          </PhoneChassis>
+        </div>
+      </div>
+    </div>
   );
 }

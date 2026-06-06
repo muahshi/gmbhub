@@ -120,7 +120,7 @@ function Navbar() {
         <nav style={{ display: "flex", gap: 32, fontSize: 14 }}>
           {["Features","How It Works","Pricing","Resources"].map(item => (
             <a key={item} href="#" style={{ color: "rgba(255,255,255,0.45)", textDecoration: "none", fontWeight: 500, letterSpacing: "0.02em", transition: "color 0.2s" }}
-              onMouseEnter={e => e.target.style.color="#fff"} onMouseLeave={e => e.target.style.color="rgba(255,255,255,0.45)"}>
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color="#fff"} onMouseLeave={e => (e.currentTarget as HTMLElement).style.color="rgba(255,255,255,0.45)"}>
               {item}
             </a>
           ))}
@@ -129,7 +129,7 @@ function Navbar() {
         {/* CTAs */}
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <a href="#" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none", fontSize: 14, fontWeight: 500, transition: "color 0.2s" }}
-            onMouseEnter={e => e.target.style.color="#fff"} onMouseLeave={e => e.target.style.color="rgba(255,255,255,0.4)"}>
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color="#fff"} onMouseLeave={e => (e.currentTarget as HTMLElement).style.color="rgba(255,255,255,0.4)"}>
             Log in
           </a>
           <button style={{
